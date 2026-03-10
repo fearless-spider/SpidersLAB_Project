@@ -1,0 +1,413 @@
+#!/usr/bin/env python3
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — Procedural Cyberpunk Wallpaper Generator            ║
+# ║                                                                      ║
+# ║  Generates a 4K neural-web wallpaper with proper alpha compositing.  ║
+# ║    • 3D spider web as neural network graph                           ║
+# ║    • Neon red (#FF0000) and electric cyan (#00FFFF) palette          ║
+# ║    • Digital rain / data stream particles                            ║
+# ║    • Glow effects, depth fog, node clusters                          ║
+# ║                                                                      ║
+# ║  Usage: spider-wallgen [--output PATH] [--width W] [--height H]     ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+import math
+import random
+import sys
+import os
+import argparse
+
+try:
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont
+except ImportError:
+    print("[!] python-pillow not installed. Run: sudo pacman -S python-pillow")
+    sys.exit(1)
+
+# ── Configuration ────────────────────────────────────────────────────
+DEFAULT_WIDTH = 3840
+DEFAULT_HEIGHT = 2160
+DEFAULT_OUTPUT = "/usr/share/spiderslab/wallpapers/spider-neural.png"
+
+# Colors (RGB)
+BLACK = (0, 0, 0)
+SPIDER_RED = (255, 0, 0)
+ELECTRIC_CYAN = (0, 255, 255)
+NEON_MAGENTA = (255, 0, 255)
+DIM_RED = (180, 0, 0)
+DIM_CYAN = (0, 160, 160)
+DARK_GREY = (18, 18, 28)
+SUBTLE_GREY = (8, 8, 14)
+
+
+def lerp_color(c1, c2, t):
+    t = max(0, min(1, t))
+    return tuple(int(c1[i] + (c2[i] - c1[i]) * t) for i in range(3))
+
+
+def dist(p1, p2):
+    return math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
+
+
+def new_layer(w, h):
+    """Create a transparent RGBA layer."""
+    return Image.new("RGBA", (w, h), (0, 0, 0, 0))
+
+
+def draw_thick_line(draw, p1, p2, color_rgb, alpha, width=1):
+    """Draw a line with specified alpha on an RGBA draw context."""
+    fill = (*color_rgb, max(0, min(255, alpha)))
+    draw.line([p1, p2], fill=fill, width=width)
+
+
+def draw_glow_line(base_img, p1, p2, color_rgb, alpha, width=1, glow=4):
+    """Draw a glowing line using layered blur compositing."""
+    # Create a small layer just for this glow
+    layer = new_layer(base_img.width, base_img.height)
+    d = ImageDraw.Draw(layer)
+    # Bright core
+    d.line([p1, p2], fill=(*color_rgb, min(255, alpha)), width=width)
+    # Blur it for glow
+    if glow > 1:
+        glowed = layer.filter(ImageFilter.GaussianBlur(radius=glow))
+        base_img.alpha_composite(glowed)
+    base_img.alpha_composite(layer)
+
+
+def draw_glow_line_fast(draw, p1, p2, color_rgb, alpha, width=1, glow_passes=3):
+    """Fast glow: draw multiple widths with decreasing alpha (no blur)."""
+    for g in range(glow_passes, 0, -1):
+        a = max(1, int(alpha * 0.3 / g))
+        w = width + g * 2
+        draw.line([p1, p2], fill=(*color_rgb, a), width=w)
+    draw.line([p1, p2], fill=(*color_rgb, min(255, alpha)), width=width)
+
+
+def draw_glow_dot(draw, center, radius, color_rgb, alpha, glow_passes=4):
+    """Draw a glowing dot using concentric circles."""
+    cx, cy = int(center[0]), int(center[1])
+    for g in range(glow_passes, 0, -1):
+        a = max(1, int(alpha * 0.25 / g))
+        r = radius + g * 3
+        draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(*color_rgb, a))
+    draw.ellipse(
+        [cx - radius, cy - radius, cx + radius, cy + radius],
+        fill=(*color_rgb, min(255, alpha)),
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  LAYER GENERATORS
+# ══════════════════════════════════════════════════════════════════════
+
+def gen_hex_grid(w, h):
+    """Subtle hexagonal grid substrate."""
+    layer = new_layer(w, h)
+    draw = ImageDraw.Draw(layer)
+    size = 120
+    hex_h = size * math.sqrt(3)
+    for row in range(-1, int(h / hex_h) + 2):
+        for col in range(-1, int(w / (size * 1.5)) + 2):
+            cx = col * size * 1.5
+            cy = row * hex_h + (col % 2) * hex_h / 2
+            pts = []
+            for i in range(6):
+                angle = math.pi / 3 * i + math.pi / 6
+                px = cx + size * 0.45 * math.cos(angle)
+                py = cy + size * 0.45 * math.sin(angle)
+                pts.append((px, py))
+            pts.append(pts[0])
+            for i in range(len(pts) - 1):
+                draw.line([pts[i], pts[i + 1]], fill=(25, 25, 45, 35), width=1)
+    return layer
+
+
+def gen_radial_web(w, h, cx, cy, radius, rings=12, spokes=24, color=DIM_RED, base_alpha=40):
+    """Classic radial spider web — organic, subtle."""
+    layer = new_layer(w, h)
+    draw = ImageDraw.Draw(layer)
+
+    # Spokes
+    for i in range(spokes):
+        angle = (2 * math.pi / spokes) * i
+        x2 = cx + radius * math.cos(angle)
+        y2 = cy + radius * math.sin(angle)
+        draw_glow_line_fast(draw, (cx, cy), (x2, y2), color,
+                            alpha=base_alpha, width=1, glow_passes=2)
+
+    # Rings with organic wobble
+    for ring in range(1, rings + 1):
+        r = radius * ring / rings
+        pts = []
+        for i in range(spokes):
+            angle = (2 * math.pi / spokes) * i
+            wobble = random.uniform(0.93, 1.07)
+            x = cx + r * wobble * math.cos(angle)
+            y = cy + r * wobble * math.sin(angle)
+            pts.append((int(x), int(y)))
+        pts.append(pts[0])
+        a = max(10, int(base_alpha * (1 - ring / (rings + 2))))
+        for i in range(len(pts) - 1):
+            draw_glow_line_fast(draw, pts[i], pts[i + 1], color,
+                                alpha=a, width=1, glow_passes=1)
+    return layer
+
+
+def gen_neural_network(w, h, node_count=220):
+    """Neural network graph — nodes and edges with depth."""
+    layer = new_layer(w, h)
+    draw = ImageDraw.Draw(layer)
+    cx, cy = w / 2, h / 2
+
+    # Generate nodes
+    nodes = []
+    for _ in range(node_count):
+        if random.random() < 0.55:
+            angle = random.uniform(0, 2 * math.pi)
+            radius = abs(random.gauss(0, min(w, h) * 0.28))
+            x = cx + radius * math.cos(angle)
+            y = cy + radius * math.sin(angle)
+        else:
+            x = random.uniform(-w * 0.03, w * 1.03)
+            y = random.uniform(-h * 0.03, h * 1.03)
+        z = random.uniform(0.25, 1.0)
+        nodes.append((x, y, z))
+
+    nodes.sort(key=lambda n: n[2])
+
+    # Build edges — connect nearby nodes
+    max_d = min(w, h) * 0.16
+    edges = []
+    for i in range(len(nodes)):
+        near = []
+        for j in range(len(nodes)):
+            if i == j:
+                continue
+            d = dist(nodes[i][:2], nodes[j][:2])
+            if d < max_d:
+                near.append((d, j))
+        near.sort()
+        for d, j in near[:6]:
+            edge = (min(i, j), max(i, j))
+            if edge not in edges:
+                edges.append(edge)
+
+    # Draw edges
+    for i, j in edges:
+        n1, n2 = nodes[i], nodes[j]
+        depth = (n1[2] + n2[2]) / 2
+        dc = dist(n1[:2], (cx, cy)) / (min(w, h) * 0.5)
+
+        if dc < 0.45:
+            color = lerp_color(SPIDER_RED, NEON_MAGENTA, dc * 2.2)
+        else:
+            color = lerp_color(NEON_MAGENTA, ELECTRIC_CYAN, min(1, (dc - 0.45) * 1.8))
+
+        alpha = int(140 * depth)
+        lw = max(1, int(3 * depth))
+        p1 = (int(n1[0]), int(n1[1]))
+        p2 = (int(n2[0]), int(n2[1]))
+        draw_glow_line_fast(draw, p1, p2, color, alpha, width=lw, glow_passes=int(4 * depth))
+
+    # Draw nodes
+    for x, y, z in nodes:
+        if x < -30 or x > w + 30 or y < -30 or y > h + 30:
+            continue
+        dc = dist((x, y), (cx, cy)) / (min(w, h) * 0.5)
+        if dc < 0.35:
+            color = SPIDER_RED
+        elif dc < 0.65:
+            color = NEON_MAGENTA
+        else:
+            color = ELECTRIC_CYAN
+
+        radius = max(2, int(6 * z))
+        alpha = int(240 * z)
+        draw_glow_dot(draw, (x, y), radius, color, alpha, glow_passes=int(6 * z))
+
+    return layer
+
+
+def gen_data_rain(w, h, columns=90):
+    """Digital rain / data stream columns."""
+    layer = new_layer(w, h)
+    draw = ImageDraw.Draw(layer)
+
+    chars = list("01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホ@#$%&<>{}[]")
+    try:
+        font = ImageFont.truetype(
+            "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf", 13
+        )
+    except (OSError, IOError):
+        try:
+            font = ImageFont.truetype("/usr/share/fonts/TTF/JetBrainsMono-Regular.ttf", 13)
+        except (OSError, IOError):
+            font = ImageFont.load_default()
+
+    for _ in range(columns):
+        x = random.randint(0, w)
+        length = random.randint(6, 35)
+        y_start = random.randint(-300, h)
+        base_color = random.choice([DIM_RED, DIM_CYAN, (60, 0, 60)])
+
+        for j in range(length):
+            y = y_start + j * 16
+            if y < -10 or y > h + 10:
+                continue
+            char = random.choice(chars)
+            # Brightness: peaks in middle of stream, fades at ends
+            t = j / max(1, length - 1)
+            brightness = math.sin(t * math.pi)  # 0→1→0
+            alpha = int(110 * brightness + 15)
+
+            # Lead character is brighter
+            if j == length - 1:
+                alpha = min(255, alpha + 50)
+                c = lerp_color(base_color, (255, 255, 255), 0.3)
+            else:
+                c = base_color
+
+            draw.text((x, y), char, fill=(*c, alpha), font=font)
+
+    return layer
+
+
+def gen_spider_emblem(w, h):
+    """Subtle spider silhouette at center."""
+    layer = new_layer(w, h)
+    draw = ImageDraw.Draw(layer)
+    cx, cy = w // 2, h // 2
+    scale = min(w, h) * 0.07
+
+    # Abdomen
+    r1 = int(scale * 0.9)
+    draw_glow_dot(draw, (cx, cy + scale * 0.35), r1, SPIDER_RED, alpha=60, glow_passes=8)
+
+    # Cephalothorax
+    r2 = int(scale * 0.55)
+    draw_glow_dot(draw, (cx, cy - scale * 0.35), r2, SPIDER_RED, alpha=65, glow_passes=7)
+
+    # 8 legs
+    legs = [
+        (-0.3, -0.75), (-0.14, -0.88), (0.14, -0.88), (0.3, -0.75),
+        (-0.32, 0.65), (-0.16, 0.82), (0.16, 0.82), (0.32, 0.65),
+    ]
+    for ax, ay in legs:
+        mx = cx + ax * scale * 3.2
+        my = cy + ay * scale * 2.2
+        ex = cx + ax * scale * 5.5
+        ey = cy + ay * scale * 3.8 + scale * 1.2
+        draw_glow_line_fast(draw, (int(cx), int(cy)), (int(mx), int(my)),
+                            SPIDER_RED, alpha=70, width=2, glow_passes=4)
+        draw_glow_line_fast(draw, (int(mx), int(my)), (int(ex), int(ey)),
+                            SPIDER_RED, alpha=50, width=2, glow_passes=3)
+
+    return layer
+
+
+def gen_scanlines(w, h, spacing=4, alpha=8):
+    """CRT-style horizontal scanlines — very subtle."""
+    layer = new_layer(w, h)
+    draw = ImageDraw.Draw(layer)
+    for y in range(0, h, spacing):
+        draw.line([(0, y), (w, y)], fill=(0, 0, 0, alpha), width=1)
+    return layer
+
+
+def apply_vignette(img):
+    """Darken edges with radial gradient mask."""
+    w, h = img.size
+    # Create elliptical bright center mask
+    mask = Image.new("L", (w, h), 0)
+    mdraw = ImageDraw.Draw(mask)
+    margin_x = int(w * 0.15)
+    margin_y = int(h * 0.1)
+    mdraw.ellipse([margin_x, margin_y, w - margin_x, h - margin_y], fill=255)
+    mask = mask.filter(ImageFilter.GaussianBlur(radius=min(w, h) // 3))
+
+    # Dark overlay
+    dark = Image.new("RGBA", (w, h), (0, 0, 0, 140))
+    # Use inverted mask: dark at edges, transparent at center
+    inv_mask = Image.eval(mask, lambda x: 255 - x)
+    dark.putalpha(inv_mask)
+    img.alpha_composite(dark)
+    return img
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  MAIN PIPELINE
+# ══════════════════════════════════════════════════════════════════════
+
+def generate_wallpaper(width, height, output_path, seed=42):
+    random.seed(seed)
+    print(f"[spider-wallgen] Generating {width}x{height} cyberpunk wallpaper (seed={seed})...")
+
+    # Base — pure black
+    canvas = Image.new("RGBA", (width, height), (*BLACK, 255))
+
+    # Layer 1: Hex grid
+    print("  [1/8] Hex grid substrate...")
+    canvas.alpha_composite(gen_hex_grid(width, height))
+
+    # Layer 2: Primary radial web (center)
+    print("  [2/8] Primary spider web...")
+    cx, cy = width // 2, height // 2
+    web1 = gen_radial_web(width, height, cx, cy,
+                          radius=min(width, height) * 0.48,
+                          rings=14, spokes=28, color=DIM_RED, base_alpha=75)
+    canvas.alpha_composite(web1)
+
+    # Layer 3: Secondary web (offset)
+    print("  [3/8] Secondary web cluster...")
+    web2 = gen_radial_web(width, height,
+                          int(cx + width * 0.22), int(cy - height * 0.18),
+                          radius=min(width, height) * 0.18,
+                          rings=6, spokes=14, color=DIM_CYAN, base_alpha=55)
+    canvas.alpha_composite(web2)
+
+    # Layer 4: Neural network
+    print("  [4/8] Neural network graph...")
+    canvas.alpha_composite(gen_neural_network(width, height, node_count=380))
+
+    # Layer 5: Spider emblem
+    print("  [5/8] Spider emblem...")
+    canvas.alpha_composite(gen_spider_emblem(width, height))
+
+    # Layer 6: Data rain
+    print("  [6/8] Data rain streams...")
+    canvas.alpha_composite(gen_data_rain(width, height, columns=150))
+
+    # Layer 7: Scanlines
+    print("  [7/8] Scanlines...")
+    canvas.alpha_composite(gen_scanlines(width, height, spacing=3, alpha=6))
+
+    # Layer 8: Vignette + glow bloom
+    print("  [8/8] Vignette & bloom pass...")
+    canvas = apply_vignette(canvas)
+
+    # Bloom: blend blurred copy for glow bleed
+    bloom = canvas.copy().filter(ImageFilter.GaussianBlur(radius=12))
+    canvas = Image.blend(canvas, bloom, alpha=0.2)
+
+    # Final RGB output
+    final = Image.new("RGB", (width, height), BLACK)
+    final.paste(canvas, mask=canvas.split()[3])
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    final.save(output_path, "PNG", optimize=True)
+    size_mb = os.path.getsize(output_path) / (1024 * 1024)
+    print(f"[spider-wallgen] Saved: {output_path} ({size_mb:.1f} MB)")
+    return output_path
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Spider's LAB Wallpaper Generator")
+    parser.add_argument("--output", "-o", default=DEFAULT_OUTPUT)
+    parser.add_argument("--width", "-W", type=int, default=DEFAULT_WIDTH)
+    parser.add_argument("--height", "-H", type=int, default=DEFAULT_HEIGHT)
+    parser.add_argument("--seed", "-s", type=int, default=42)
+    args = parser.parse_args()
+    generate_wallpaper(args.width, args.height, args.output, args.seed)
+
+
+if __name__ == "__main__":
+    main()

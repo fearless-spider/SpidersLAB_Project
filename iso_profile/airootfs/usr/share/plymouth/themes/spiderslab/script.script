@@ -2,14 +2,14 @@
 // ║  SPIDER'S LAB — Plymouth Boot Animation                            ║
 // ║  "Hack the Planet." — Zero Cool                                    ║
 // ║                                                                    ║
-// ║  A red spider web pulses with a breathing glow.                    ║
+// ║  A hot pink spider web pulses with a breathing glow.               ║
 // ║  A cyan circuit line creeps around the screen edges.               ║
-// ║  Pure black void. Minimal. Intimidating.                           ║
+// ║  Deep purple void. Fluoromachine palette. Intimidating.            ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 
 // ── SCREEN SETUP ─────────────────────────────────────────────────────
-Window.SetBackgroundTopColor(0, 0, 0);
-Window.SetBackgroundBottomColor(0, 0, 0);
+Window.SetBackgroundTopColor(0.098, 0.090, 0.141);
+Window.SetBackgroundBottomColor(0.078, 0.071, 0.118);
 
 screen_width = Window.GetWidth();
 screen_height = Window.GetHeight();
@@ -99,7 +99,7 @@ fun message_callback(text) {
     if (text == "")
         return;
 
-    msg_image = Image.Text(text, 0, 1, 1);  // Cyan text
+    msg_image = Image.Text(text, 0.380, 0.886, 1.0);  // Electric Cyan #61E2FF
     status_text.sprite.SetImage(msg_image);
     status_text.sprite.SetPosition(
         center_x - msg_image.GetWidth() / 2,

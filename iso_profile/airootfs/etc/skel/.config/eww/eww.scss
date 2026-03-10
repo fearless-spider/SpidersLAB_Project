@@ -1,20 +1,29 @@
 // ╔══════════════════════════════════════════════════════════════════════════╗
 // ║  SPIDER'S LAB — EWW HUD STYLESHEET                                    ║
-// ║  Colors: Spider-Red (#FF0000), Electric Cyan (#00FFFF)                 ║
+// ║  Colors: Fluoromachine — Hot Pink, Cyan, Purple, Green                 ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
-// -- Color Palette
-$bg:           rgba(0, 0, 0, 0.50);
-$bg-panel:     rgba(5, 5, 15, 0.65);
-$bg-dark:      rgba(0, 0, 0, 0.80);
-$spider-red:   #FF0000;
-$electric-cyan:#00FFFF;
-$dim-cyan:     #007777;
-$dim-red:      #770000;
-$text:         #CCCCCC;
-$text-dim:     rgba(200, 200, 200, 0.4);
-$border:       rgba(0, 255, 255, 0.15);
-$scanline:     rgba(0, 255, 255, 0.03);
+// -- Color Palette (Fluoromachine)
+$bg:           rgba(25, 23, 36, 0.50);
+$bg-panel:     rgba(30, 25, 50, 0.65);
+$bg-dark:      rgba(20, 18, 30, 0.80);
+$spider-red:   #FC199A;
+$electric-cyan:#61E2FF;
+$dim-cyan:     #3A8A9E;
+$dim-red:      #8A0F5A;
+$text:         #E8E3E3;
+$text-dim:     rgba(232, 227, 227, 0.4);
+$border:       rgba(97, 226, 255, 0.15);
+$scanline:     rgba(175, 109, 249, 0.03);
+
+// Hazard palette (Fluoromachine purple)
+$hazard-gold:   #AF6DF9;
+$hazard-dim:    #7B4DB0;
+$hazard-glow:   rgba(175, 109, 249, 0.4);
+$hazard-border: rgba(175, 109, 249, 0.6);
+$hazard-bg:     rgba(30, 20, 50, 0.70);
+$hazard-stripe-a: rgba(175, 109, 249, 0.5);
+$hazard-stripe-b: rgba(20, 18, 30, 0.7);
 
 // -- Base
 * {
@@ -47,7 +56,7 @@ $scanline:     rgba(0, 255, 255, 0.03);
   letter-spacing: 2px;
   margin-bottom: 8px;
   padding-bottom: 4px;
-  border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(97, 226, 255, 0.1);
 }
 
 // ── Clock ────────────────────────────────────────────────────────────────
@@ -82,7 +91,7 @@ $scanline:     rgba(0, 255, 255, 0.03);
       transparent 1px,
       transparent 3px
     );
-  background-color: rgba(5, 5, 15, 0.65);
+  background-color: rgba(30, 25, 50, 0.65);
 }
 
 .neural-arcs {
@@ -231,5 +240,99 @@ $scanline:     rgba(0, 255, 255, 0.03);
   color: $dim-cyan;
   font-size: 9px;
   font-family: "JetBrains Mono", monospace;
-  line-height: 1.5;
+  padding: 2px 0;
+}
+
+// ── Electrical Hazard ──────────────────────────────────────────────────
+
+@keyframes hazard-flicker {
+  0% {
+    border-color: $hazard-border;
+    box-shadow: 0 0 8px $hazard-glow, inset 0 0 4px rgba(175, 109, 249, 0.05);
+  }
+  50% {
+    border-color: $hazard-border;
+    box-shadow: 0 0 8px $hazard-glow, inset 0 0 4px rgba(175, 109, 249, 0.05);
+  }
+  75% {
+    border-color: rgba(175, 109, 249, 0.2);
+    box-shadow: 0 0 2px rgba(175, 109, 249, 0.1);
+  }
+  90% {
+    border-color: rgba(175, 109, 249, 0.15);
+    box-shadow: 0 0 1px rgba(175, 109, 249, 0.05);
+  }
+  100% {
+    border-color: $hazard-border;
+    box-shadow: 0 0 8px $hazard-glow, inset 0 0 4px rgba(175, 109, 249, 0.05);
+  }
+}
+
+.hazard-panel {
+  background: $hazard-bg;
+  border: 2px solid $hazard-border;
+  border-radius: 2px 12px 2px 12px;
+  box-shadow: 0 0 8px $hazard-glow, inset 0 0 4px rgba(175, 109, 249, 0.05);
+  padding: 0px;
+  animation: hazard-flicker 4s ease-in-out infinite;
+}
+
+.hazard-stripes {
+  min-height: 6px;
+  background-image: repeating-linear-gradient(
+    45deg,
+    $hazard-stripe-a 0px,
+    $hazard-stripe-a 6px,
+    $hazard-stripe-b 6px,
+    $hazard-stripe-b 12px
+  );
+  margin: 0px -2px;
+  border-radius: 0px;
+}
+
+.hazard-title {
+  color: $hazard-gold;
+  font-family: "Orbitron", "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  text-shadow: 0 0 6px $hazard-glow;
+  padding: 8px 10px 4px 10px;
+}
+
+.hazard-section {
+  padding: 2px 10px 4px 10px;
+}
+
+.hazard-section-title {
+  color: $hazard-dim;
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(175, 109, 249, 0.1);
+}
+
+.hazard-row {
+  margin-bottom: 2px;
+}
+
+.hazard-label {
+  color: $text-dim;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.hazard-value {
+  color: $text;
+  font-size: 10px;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.hazard-value-hot {
+  color: $hazard-gold;
+  font-size: 10px;
+  font-family: "JetBrains Mono", monospace;
+  text-shadow: 0 0 4px $hazard-glow;
 }

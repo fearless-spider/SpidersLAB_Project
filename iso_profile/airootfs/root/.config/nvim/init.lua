@@ -152,22 +152,22 @@ local function apply_spider_neon()
     vim.cmd("highlight clear")
     vim.g.colors_name = "spider-neon"
 
-    -- // Color palette — memorize these hex codes. They're your DNA.
+    -- // Color palette — Fluoromachine. Deep purple void. Neon edges.
     local c = {
         none       = "NONE",
         bg         = "NONE",           -- Transparent. See through the glass.
-        fg         = "#00FFFF",        -- Electric Cyan — data, truth, text.
-        red        = "#FF0000",        -- Spider-Red — keywords, danger, power.
-        magenta    = "#FF00FF",        -- Neon Magenta — strings, accents.
-        green      = "#00CC66",        -- Terminal Green — success signals.
-        yellow     = "#FFAA00",        -- Amber — warnings, constants.
-        blue       = "#0066FF",        -- Deep Blue — functions, depth.
-        cyan       = "#00FFFF",        -- Electric Cyan — primary.
-        white      = "#D4D4D4",        -- Soft White — secondary text.
-        dim        = "#555555",        -- Dim Gray — comments, noise.
-        dark       = "#111111",        -- Near-black — subtle backgrounds.
-        bright_red = "#FF3333",        -- Bright Red — errors screaming.
-        bright_cyan = "#66FFFF",       -- Bright Cyan — highlights.
+        fg         = "#E8E3E3",        -- Warm white — clean, readable text.
+        red        = "#FC199A",        -- Hot Pink — keywords, danger, power.
+        magenta    = "#AF6DF9",        -- Neon Purple — strings, accents.
+        green      = "#72F1B8",        -- Fluoromachine Mint — success signals.
+        yellow     = "#FFCC00",        -- Neon Yellow — warnings, constants.
+        blue       = "#5C73E6",        -- Soft Blue — functions, depth.
+        cyan       = "#61E2FF",        -- Electric Cyan — primary data color.
+        white      = "#E8E3E3",        -- Warm White — secondary text.
+        dim        = "#6B5F7B",        -- Muted Purple — comments, noise.
+        dark       = "#191724",        -- Deep Purple void — subtle backgrounds.
+        bright_red = "#FE5EB5",        -- Bright Pink — errors screaming.
+        bright_cyan = "#8EEBFF",       -- Bright Cyan — highlights.
     }
 
     local hl = function(group, opts)
@@ -178,7 +178,7 @@ local function apply_spider_neon()
     hl("Normal",       { fg = c.fg, bg = c.bg })
     hl("NormalFloat",  { fg = c.fg, bg = c.dark })
     hl("FloatBorder",  { fg = c.red, bg = c.dark })
-    hl("CursorLine",   { bg = "#1a0000" })   -- Subtle red glow. Like infrared.
+    hl("CursorLine",   { bg = "#241B30" })   -- Subtle purple glow. Deep in the void.
     hl("CursorLineNr", { fg = c.red, bold = true })
     hl("LineNr",       { fg = c.dim })
     hl("SignColumn",   { bg = c.bg })
@@ -190,8 +190,8 @@ local function apply_spider_neon()
     hl("PmenuSel",     { fg = "#000000", bg = c.cyan })
     hl("PmenuSbar",    { bg = c.dark })
     hl("PmenuThumb",   { bg = c.red })
-    hl("Visual",       { bg = "#002233" })
-    hl("VisualNOS",    { bg = "#002233" })
+    hl("Visual",       { bg = "#2D2250" })
+    hl("VisualNOS",    { bg = "#2D2250" })
     hl("Search",       { fg = "#000000", bg = c.yellow })
     hl("IncSearch",    { fg = "#000000", bg = c.magenta })
     hl("MatchParen",   { fg = c.magenta, bold = true, underline = true })
@@ -199,7 +199,7 @@ local function apply_spider_neon()
     hl("EndOfBuffer",  { fg = c.bg })
     hl("Folded",       { fg = c.dim, bg = c.dark })
     hl("FoldColumn",   { fg = c.dim, bg = c.bg })
-    hl("ColorColumn",  { bg = "#0a0000" })
+    hl("ColorColumn",  { bg = "#1E1432" })
     hl("WildMenu",     { fg = "#000000", bg = c.cyan })
     hl("TabLine",      { fg = c.dim, bg = c.dark })
     hl("TabLineFill",  { bg = c.dark })
@@ -330,7 +330,7 @@ local function apply_spider_neon()
     hl("TelescopePreviewNormal", { fg = c.fg, bg = c.bg })
     hl("TelescopePreviewBorder", { fg = c.red, bg = c.bg })
     hl("TelescopePreviewTitle",  { fg = "#000000", bg = c.cyan, bold = true })
-    hl("TelescopeSelection",     { fg = c.cyan, bg = "#001a1a", bold = true })
+    hl("TelescopeSelection",     { fg = c.cyan, bg = "#241B30", bold = true })
     hl("TelescopeSelectionCaret", { fg = c.red })
     hl("TelescopeMatching",      { fg = c.magenta, bold = true })
 
@@ -569,26 +569,26 @@ require("lazy").setup({
             -- // Transparent backgrounds. Cyan data. Red accents.
             local spider_lualine = {
                 normal = {
-                    a = { fg = "#000000", bg = "#FF0000", gui = "bold" },
-                    b = { fg = "#00FFFF", bg = "#111111" },
-                    c = { fg = "#555555", bg = "NONE" },
+                    a = { fg = "#191724", bg = "#FC199A", gui = "bold" },
+                    b = { fg = "#61E2FF", bg = "#241B30" },
+                    c = { fg = "#6B5F7B", bg = "NONE" },
                 },
                 insert = {
-                    a = { fg = "#000000", bg = "#00FFFF", gui = "bold" },
+                    a = { fg = "#191724", bg = "#61E2FF", gui = "bold" },
                 },
                 visual = {
-                    a = { fg = "#000000", bg = "#FF00FF", gui = "bold" },
+                    a = { fg = "#191724", bg = "#AF6DF9", gui = "bold" },
                 },
                 replace = {
-                    a = { fg = "#000000", bg = "#FFAA00", gui = "bold" },
+                    a = { fg = "#191724", bg = "#FFCC00", gui = "bold" },
                 },
                 command = {
-                    a = { fg = "#000000", bg = "#00CC66", gui = "bold" },
+                    a = { fg = "#191724", bg = "#72F1B8", gui = "bold" },
                 },
                 inactive = {
-                    a = { fg = "#555555", bg = "#111111" },
-                    b = { fg = "#555555", bg = "#111111" },
-                    c = { fg = "#333333", bg = "NONE" },
+                    a = { fg = "#6B5F7B", bg = "#241B30" },
+                    b = { fg = "#6B5F7B", bg = "#241B30" },
+                    c = { fg = "#3B3455", bg = "NONE" },
                 },
             }
 
@@ -625,9 +625,9 @@ require("lazy").setup({
                             "diff",
                             symbols = { added = " ", modified = " ", removed = " " },
                             diff_color = {
-                                added    = { fg = "#00CC66" },
-                                modified = { fg = "#FFAA00" },
-                                removed  = { fg = "#FF0000" },
+                                added    = { fg = "#72F1B8" },
+                                modified = { fg = "#FFCC00" },
+                                removed  = { fg = "#FC199A" },
                             },
                         },
                     },
@@ -638,10 +638,10 @@ require("lazy").setup({
                             sources = { "nvim_diagnostic" },
                             symbols = { error = " ", warn = " ", info = " ", hint = " " },
                             diagnostics_color = {
-                                error = { fg = "#FF3333" },
-                                warn  = { fg = "#FFAA00" },
-                                info  = { fg = "#00FFFF" },
-                                hint  = { fg = "#00CC66" },
+                                error = { fg = "#FE5EB5" },
+                                warn  = { fg = "#FFCC00" },
+                                info  = { fg = "#61E2FF" },
+                                hint  = { fg = "#72F1B8" },
                             },
                         },
                     },
@@ -662,9 +662,9 @@ require("lazy").setup({
                             color = function()
                                 local clients = vim.lsp.get_clients({ bufnr = 0 })
                                 if #clients > 0 then
-                                    return { fg = "#00FFFF" }
+                                    return { fg = "#61E2FF" }
                                 end
-                                return { fg = "#555555" }
+                                return { fg = "#6B5F7B" }
                             end,
                         },
                     },
@@ -770,8 +770,8 @@ require("lazy").setup({
             scope = { enabled = true, show_start = false, highlight = "IblScope" },
         },
         config = function(_, opts)
-            vim.api.nvim_set_hl(0, "IblIndent", { fg = "#1a1a1a" })
-            vim.api.nvim_set_hl(0, "IblScope",  { fg = "#FF0000" })
+            vim.api.nvim_set_hl(0, "IblIndent", { fg = "#2D2250" })
+            vim.api.nvim_set_hl(0, "IblScope",  { fg = "#FC199A" })
             require("ibl").setup(opts)
         end,
     },

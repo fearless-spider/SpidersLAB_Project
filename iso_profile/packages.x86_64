@@ -147,6 +147,10 @@ wofi
 dunst
 swww
 
+# ── Python (wallpaper generator) ────────────────────────────
+python
+python-pillow
+
 # ── Audio Stack (PipeWire) ───────────────────────────────────
 pipewire
 pipewire-alsa

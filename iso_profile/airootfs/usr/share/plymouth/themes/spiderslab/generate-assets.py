@@ -15,11 +15,11 @@ import os
 
 # ── Config ────────────────────────────────────────────────────────────
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
-SPIDER_RED = (255, 0, 0)
-ELECTRIC_CYAN = (0, 255, 255)
-NEON_MAGENTA = (255, 0, 255)
-BLACK = (0, 0, 0)
-WHITE = (212, 212, 212)
+HOT_PINK = (252, 25, 154)
+ELECTRIC_CYAN = (97, 226, 255)
+NEON_PURPLE = (175, 109, 249)
+DEEP_PURPLE = (25, 23, 36)
+WHITE = (232, 227, 227)
 
 CANVAS_W = 800
 CANVAS_H = 600
@@ -50,7 +50,7 @@ def generate_web():
             x1 = cx + int(max_radius * t1 * math.cos(angle))
             y1 = cy + int(max_radius * t1 * math.sin(angle))
             alpha = int(200 * (1 - t0 * 0.6))
-            draw.line([(x0, y0), (x1, y1)], fill=(*SPIDER_RED, alpha), width=1)
+            draw.line([(x0, y0), (x1, y1)], fill=(*HOT_PINK, alpha), width=1)
 
     # Draw concentric rings (the web strands)
     for ring in range(1, num_rings + 1):
@@ -75,11 +75,11 @@ def generate_web():
             mid_x = int(mid_x + (cx - mid_x) * sag)
             mid_y = int(mid_y + (cy - mid_y) * sag)
             draw.line([points[j], (mid_x, mid_y), points[j + 1]],
-                      fill=(*SPIDER_RED, alpha), width=1)
+                      fill=(*HOT_PINK, alpha), width=1)
 
     # Center dot — the spider's core
     draw.ellipse([cx - 3, cy - 3, cx + 3, cy + 3],
-                 fill=(*SPIDER_RED, 255))
+                 fill=(*HOT_PINK, 255))
 
     # Subtle glow via blur
     glow = img.filter(ImageFilter.GaussianBlur(radius=4))
@@ -118,11 +118,11 @@ def generate_logo():
     # Red glow layer (drawn slightly larger, blurred)
     glow_img = Image.new("RGBA", (600, 120), (0, 0, 0, 0))
     glow_draw = ImageDraw.Draw(glow_img)
-    glow_draw.text((tx, ty), title, fill=(*SPIDER_RED, 120), font=font)
+    glow_draw.text((tx, ty), title, fill=(*HOT_PINK, 120), font=font)
     glow_img = glow_img.filter(ImageFilter.GaussianBlur(radius=6))
 
     # Sharp text on top
-    draw.text((tx, ty), title, fill=(*SPIDER_RED, 255), font=font)
+    draw.text((tx, ty), title, fill=(*HOT_PINK, 255), font=font)
 
     # Subtitle
     subtitle = "[ CYBERPUNK HACKER WORKSTATION ]"
@@ -142,22 +142,21 @@ def generate_progress_bar():
     bar_w = 280
     bar_h = 2
 
-    # Container — dim red outline
+    # Container — dim pink outline
     container = Image.new("RGBA", (bar_w, bar_h + 2), (0, 0, 0, 0))
     draw = ImageDraw.Draw(container)
     draw.rectangle([0, 0, bar_w - 1, bar_h + 1],
-                   outline=(*SPIDER_RED, 60), width=1)
+                   outline=(*HOT_PINK, 60), width=1)
     container.save(os.path.join(OUTPUT_DIR, "progress-bar.png"))
     print("[+] progress-bar.png generated")
 
-    # Fill — cyan gradient
+    # Fill — cyan to purple gradient
     fill = Image.new("RGBA", (bar_w, bar_h), (0, 0, 0, 0))
     for x in range(bar_w):
-        # Cyan with slight gradient to magenta at the leading edge
         ratio = x / bar_w
-        r = int(0 + 80 * ratio)
-        g = int(255 - 40 * ratio)
-        b = 255
+        r = int(97 + (175 - 97) * ratio)
+        g = int(226 + (109 - 226) * ratio)
+        b = int(255 + (249 - 255) * ratio)
         alpha = int(180 + 75 * ratio)
         for y in range(bar_h):
             fill.putpixel((x, y), (r, g, b, alpha))

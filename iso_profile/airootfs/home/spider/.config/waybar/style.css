@@ -1,33 +1,30 @@
 /*
  * ╔══════════════════════════════════════════════════════════════════════╗
- * ║  SPIDER'S LAB — WAYBAR STYLESHEET                                  ║
+ * ║  SPIDER'S LAB — HOLOGRAPHIC WAYBAR STYLESHEET                      ║
  * ║                                                                    ║
- * ║  "The pool on the roof must have a leak." — Zero Cool              ║
- * ║                                                                    ║
- * ║  This HUD is what you see when you look through the spider's       ║
- * ║  eyes. Glassmorphism over pure black. Red glow on the edges.       ║
- * ║  Cyan data streams. Welcome to the web.                            ║
+ * ║  Fluoromachine edition: floating frosted glass, hot-pink border,   ║
+ * ║  rounded corners, synthwave glow. Deep purple base.                ║
  * ╚══════════════════════════════════════════════════════════════════════╝
  */
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   COLOR MATRIX — every hex is deliberate
+   COLOR MATRIX — Fluoromachine
    ══════════════════════════════════════════════════════════════════════ */
 
-@define-color bg_base       rgba(0, 0, 0, 0.55);
-@define-color bg_hover      rgba(0, 0, 0, 0.75);
-@define-color spider_red    #FF0000;
-@define-color electric_cyan #00FFFF;
-@define-color neon_magenta  #FF00FF;
-@define-color text_primary  #D4D4D4;
-@define-color text_dim      #555555;
-@define-color separator     rgba(255, 0, 0, 0.25);
-@define-color border_glow   rgba(255, 0, 0, 0.35);
+@define-color bg_base       rgba(25, 23, 36, 0.65);
+@define-color bg_hover      rgba(36, 27, 48, 0.80);
+@define-color spider_red    #FC199A;
+@define-color electric_cyan #61E2FF;
+@define-color neon_magenta  #AF6DF9;
+@define-color text_primary  #E8E3E3;
+@define-color text_dim      #6B5F7B;
+@define-color separator     rgba(252, 25, 154, 0.18);
+@define-color border_neon   rgba(252, 25, 154, 0.50);
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   GLOBAL RESET — clean slate, no browser garbage
+   GLOBAL RESET
    ══════════════════════════════════════════════════════════════════════ */
 
 * {
@@ -43,27 +40,18 @@
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   THE BAR — glassmorphism with a red nervous system
-   The box-shadow creates that subtle red glow underneath.
-   Like the bar is alive. Breathing. Watching.
+   THE BAR — floating holographic panel
+   Frosted glass with hot-pink border. Not touching screen edges.
    ══════════════════════════════════════════════════════════════════════ */
 
 window#waybar {
-    background:
-        repeating-linear-gradient(
-            0deg,
-            transparent 0px,
-            transparent 1px,
-            rgba(0, 0, 0, 0.06) 1px,
-            rgba(0, 0, 0, 0.06) 2px
-        ),
-        linear-gradient(to bottom, @bg_base, @bg_base);
-    border-bottom: 1px solid @border_glow;
+    background: @bg_base;
+    border: 1px solid @border_neon;
+    border-radius: 14px;
     box-shadow:
-        0 2px 16px rgba(255, 0, 0, 0.10),
-        0 0 60px rgba(255, 0, 0, 0.04),
-        inset 0 0 20px rgba(255, 0, 0, 0.03),
-        inset 0 -1px 0 rgba(255, 0, 0, 0.08);
+        0 4px 20px rgba(252, 25, 154, 0.12),
+        0 0 40px rgba(252, 25, 154, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
     color: @text_primary;
 }
 
@@ -73,13 +61,13 @@ window#waybar.hidden {
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   TOOLTIP — the spider whispers data
+   TOOLTIP
    ══════════════════════════════════════════════════════════════════════ */
 
 tooltip {
-    background: rgba(0, 0, 0, 0.92);
+    background: rgba(25, 23, 36, 0.92);
     border: 1px solid @spider_red;
-    border-radius: 0;
+    border-radius: 8px;
     color: @electric_cyan;
     padding: 8px 14px;
 }
@@ -91,8 +79,7 @@ tooltip label {
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   MODULE BASE — shared styling for every readout
-   Each module is a sensor in the spider's nervous system.
+   MODULE BASE
    ══════════════════════════════════════════════════════════════════════ */
 
 #workspaces,
@@ -105,10 +92,12 @@ tooltip label {
 #battery,
 #tray,
 #custom-gpu,
+#custom-vram,
 #custom-nettraffic,
 #custom-neuralload,
 #custom-separator,
 #custom-power,
+#custom-ghost,
 #custom-logo {
     padding: 0 12px;
     margin: 4px 0;
@@ -119,7 +108,7 @@ tooltip label {
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   PIPE SEPARATORS — │ — like data bus lines on a PCB
+   SEPARATORS
    ══════════════════════════════════════════════════════════════════════ */
 
 #custom-separator {
@@ -131,68 +120,64 @@ tooltip label {
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   SPIDER LOGO — left anchor. The brand. The mark.
-   Glows red. Always watching from the corner.
+   SPIDER LOGO
    ══════════════════════════════════════════════════════════════════════ */
 
 #custom-logo {
     color: @spider_red;
     font-size: 16px;
     font-weight: bold;
-    padding: 0 14px 0 10px;
+    padding: 0 14px 0 14px;
     text-shadow:
-        0 0 8px rgba(255, 0, 0, 0.7),
-        0 0 20px rgba(255, 0, 0, 0.3);
+        0 0 8px rgba(252, 25, 154, 0.7),
+        0 0 20px rgba(252, 25, 154, 0.3);
 }
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   WORKSPACES — parallel dimensions in the spider's web
-   Roman numerals because we're not savages.
+   WORKSPACES
    ══════════════════════════════════════════════════════════════════════ */
 
 #workspaces button {
-    padding: 0 7px;
+    padding: 0 8px;
     margin: 4px 2px;
     color: @text_dim;
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
+    border-radius: 6px;
     transition: all 0.2s ease;
-    min-width: 22px;
+    min-width: 24px;
 }
 
 #workspaces button:hover {
     color: @neon_magenta;
-    background: rgba(255, 0, 255, 0.06);
+    background: rgba(175, 109, 249, 0.08);
     border-bottom: 2px solid @neon_magenta;
-    text-shadow: 0 0 8px rgba(255, 0, 255, 0.5);
+    text-shadow: 0 0 8px rgba(175, 109, 249, 0.5);
 }
 
-/* Active workspace — pulsing red. You are HERE. */
 #workspaces button.active {
     color: @spider_red;
     border-bottom: 2px solid @spider_red;
-    text-shadow: 0 0 10px rgba(255, 0, 0, 0.6);
-    background: rgba(255, 0, 0, 0.06);
+    text-shadow: 0 0 10px rgba(252, 25, 154, 0.6);
+    background: rgba(252, 25, 154, 0.08);
     font-weight: bold;
 }
 
-/* Urgent — something's screaming for attention */
 #workspaces button.urgent {
     color: @spider_red;
     animation: urgentPulse 0.6s ease infinite alternate;
 }
 
 @keyframes urgentPulse {
-    from { text-shadow: 0 0 4px rgba(255, 0, 0, 0.3); background: transparent; }
-    to   { text-shadow: 0 0 20px rgba(255, 0, 0, 0.9); background: rgba(255, 0, 0, 0.08); }
+    from { text-shadow: 0 0 4px rgba(252, 25, 154, 0.3); background: transparent; }
+    to   { text-shadow: 0 0 20px rgba(252, 25, 154, 0.9); background: rgba(252, 25, 154, 0.10); }
 }
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   CLOCK — the central data readout. Electric Cyan.
-   Time is the one thing you can't hack. Or can you?
+   CLOCK — Fluoromachine Cyan, center anchor
    ══════════════════════════════════════════════════════════════════════ */
 
 #clock {
@@ -201,28 +186,26 @@ tooltip label {
     font-size: 13px;
     letter-spacing: 1px;
     text-shadow:
-        0 0 6px rgba(0, 255, 255, 0.4),
-        0 0 16px rgba(0, 255, 255, 0.15);
+        0 0 6px rgba(97, 226, 255, 0.4),
+        0 0 16px rgba(97, 226, 255, 0.15);
 }
 
 #clock:hover {
     text-shadow:
-        0 0 10px rgba(0, 255, 255, 0.7),
-        0 0 30px rgba(0, 255, 255, 0.3);
+        0 0 10px rgba(97, 226, 255, 0.7),
+        0 0 30px rgba(97, 226, 255, 0.3);
 }
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   CPU — the heartbeat
+   CPU
    ══════════════════════════════════════════════════════════════════════ */
 
-#cpu {
-    color: @text_primary;
-}
+#cpu { color: @text_primary; }
 
 #cpu.warning {
     color: @neon_magenta;
-    text-shadow: 0 0 4px rgba(255, 0, 255, 0.3);
+    text-shadow: 0 0 4px rgba(175, 109, 249, 0.3);
 }
 
 #cpu.critical {
@@ -232,16 +215,14 @@ tooltip label {
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   MEMORY — how deep does the rabbit hole go?
+   MEMORY
    ══════════════════════════════════════════════════════════════════════ */
 
-#memory {
-    color: @text_primary;
-}
+#memory { color: @text_primary; }
 
 #memory.warning {
     color: @neon_magenta;
-    text-shadow: 0 0 4px rgba(255, 0, 255, 0.3);
+    text-shadow: 0 0 4px rgba(175, 109, 249, 0.3);
 }
 
 #memory.critical {
@@ -251,91 +232,82 @@ tooltip label {
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   GPU — RTX 3060 vitals. The silicon spider's brain.
-   Always cyan — it's our compute unit. Special treatment.
+   GPU + VRAM — Cyber-Icons, always cyan
    ══════════════════════════════════════════════════════════════════════ */
 
 #custom-gpu {
     color: @electric_cyan;
-    text-shadow: 0 0 4px rgba(0, 255, 255, 0.25);
+    text-shadow: 0 0 6px rgba(97, 226, 255, 0.3);
+}
+
+#custom-vram {
+    color: @electric_cyan;
+    text-shadow: 0 0 4px rgba(97, 226, 255, 0.2);
+    font-size: 12px;
 }
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   TEMPERATURE — thermal readout
+   TEMPERATURE
    ══════════════════════════════════════════════════════════════════════ */
 
-#temperature {
-    color: @text_primary;
-}
+#temperature { color: @text_primary; }
 
 #temperature.critical {
     color: @spider_red;
     animation: criticalGlow 0.8s ease infinite alternate;
 }
 
-/* The critical glow — red pulse when things get hot */
 @keyframes criticalGlow {
-    from { text-shadow: 0 0 4px rgba(255, 0, 0, 0.3); }
-    to   { text-shadow: 0 0 18px rgba(255, 0, 0, 1.0); }
+    from { text-shadow: 0 0 4px rgba(252, 25, 154, 0.3); }
+    to   { text-shadow: 0 0 18px rgba(252, 25, 154, 1.0); }
 }
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   NETWORK — connection to the outside world
+   NETWORK
    ══════════════════════════════════════════════════════════════════════ */
 
-#network {
-    color: @text_primary;
-}
+#network { color: @text_primary; }
 
 #network.disconnected {
     color: @spider_red;
-    text-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
+    text-shadow: 0 0 8px rgba(252, 25, 154, 0.5);
 }
 
 #network.linked,
 #network.wifi,
 #network.ethernet {
     color: @electric_cyan;
-    text-shadow: 0 0 4px rgba(0, 255, 255, 0.2);
+    text-shadow: 0 0 4px rgba(97, 226, 255, 0.2);
 }
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   AUDIO — listening in
+   AUDIO
    ══════════════════════════════════════════════════════════════════════ */
 
-#pulseaudio {
-    color: @text_primary;
-}
-
-#pulseaudio.muted {
-    color: @text_dim;
-}
+#pulseaudio { color: @text_primary; }
+#pulseaudio.muted { color: @text_dim; }
 
 #pulseaudio:hover {
     color: @neon_magenta;
-    text-shadow: 0 0 6px rgba(255, 0, 255, 0.4);
+    text-shadow: 0 0 6px rgba(175, 109, 249, 0.4);
 }
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   BATTERY — power reserves (if applicable)
+   BATTERY
    ══════════════════════════════════════════════════════════════════════ */
 
-#battery {
-    color: @text_primary;
-}
+#battery { color: @text_primary; }
 
 #battery.charging {
     color: @electric_cyan;
-    text-shadow: 0 0 4px rgba(0, 255, 255, 0.3);
+    text-shadow: 0 0 4px rgba(97, 226, 255, 0.3);
 }
 
-#battery.warning:not(.charging) {
-    color: @neon_magenta;
-}
+#battery.warning:not(.charging) { color: @neon_magenta; }
 
 #battery.critical:not(.charging) {
     color: @spider_red;
@@ -347,22 +319,41 @@ tooltip label {
    SYSTEM TRAY
    ══════════════════════════════════════════════════════════════════════ */
 
-#tray {
-    padding: 0 8px;
+#tray { padding: 0 8px; }
+#tray > .passive { -gtk-icon-effect: dim; }
+#tray > .needs-attention { -gtk-icon-effect: highlight; }
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   GHOST PROTOCOL BUTTON
+   ══════════════════════════════════════════════════════════════════════ */
+
+#custom-ghost {
+    color: @neon_magenta;
+    font-size: 15px;
+    padding: 0 10px;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 4px rgba(175, 109, 249, 0.3);
 }
 
-#tray > .passive {
-    -gtk-icon-effect: dim;
+#custom-ghost:hover {
+    color: #C98FFB;
+    text-shadow:
+        0 0 10px rgba(175, 109, 249, 0.8),
+        0 0 25px rgba(175, 109, 249, 0.4);
+    background: rgba(175, 109, 249, 0.08);
+    border-radius: 6px;
+    animation: ghostPulse 0.8s ease infinite alternate;
 }
 
-#tray > .needs-attention {
-    -gtk-icon-effect: highlight;
+@keyframes ghostPulse {
+    from { text-shadow: 0 0 6px rgba(175, 109, 249, 0.4); }
+    to   { text-shadow: 0 0 16px rgba(175, 109, 249, 0.9); }
 }
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   POWER BUTTON — the kill switch
-   Red. Dangerous. One click from darkness.
+   POWER BUTTON
    ══════════════════════════════════════════════════════════════════════ */
 
 #custom-power {
@@ -373,17 +364,17 @@ tooltip label {
 }
 
 #custom-power:hover {
-    color: #FF4444;
+    color: #FE5EB5;
     text-shadow:
-        0 0 12px rgba(255, 0, 0, 0.8),
-        0 0 30px rgba(255, 0, 0, 0.4);
-    background: rgba(255, 0, 0, 0.10);
+        0 0 12px rgba(252, 25, 154, 0.8),
+        0 0 30px rgba(252, 25, 154, 0.4);
+    background: rgba(252, 25, 154, 0.10);
+    border-radius: 6px;
 }
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   HOVER STATE — all data modules glow cyan on hover
-   Like touching a nerve in the spider's web.
+   HOVER STATE — all data modules glow cyan
    ══════════════════════════════════════════════════════════════════════ */
 
 #cpu:hover,
@@ -391,15 +382,17 @@ tooltip label {
 #temperature:hover,
 #network:hover,
 #custom-gpu:hover,
+#custom-vram:hover,
 #battery:hover {
     color: @electric_cyan;
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-    background: rgba(0, 255, 255, 0.04);
+    text-shadow: 0 0 10px rgba(97, 226, 255, 0.5);
+    background: rgba(97, 226, 255, 0.04);
+    border-radius: 6px;
 }
 
+
 /* ══════════════════════════════════════════════════════════════════════
-   NETWORK TRAFFIC HUD — data streaming visualization
-   Cyan flicker when active, dim when idle.
+   NETWORK TRAFFIC HUD
    ══════════════════════════════════════════════════════════════════════ */
 
 #custom-nettraffic {
@@ -410,8 +403,8 @@ tooltip label {
 #custom-nettraffic.active {
     color: @electric_cyan;
     text-shadow:
-        0 0 6px rgba(0, 255, 255, 0.5),
-        0 0 16px rgba(0, 255, 255, 0.2);
+        0 0 6px rgba(97, 226, 255, 0.5),
+        0 0 16px rgba(97, 226, 255, 0.2);
     animation: networkFlicker 0.15s ease-in-out infinite alternate;
 }
 
@@ -421,14 +414,13 @@ tooltip label {
 }
 
 @keyframes networkFlicker {
-    0%   { opacity: 1.0; text-shadow: 0 0 6px rgba(0, 255, 255, 0.5), 0 0 16px rgba(0, 255, 255, 0.2); }
-    100% { opacity: 0.82; text-shadow: 0 0 10px rgba(0, 255, 255, 0.8), 0 0 24px rgba(0, 255, 255, 0.35); }
+    0%   { opacity: 1.0; text-shadow: 0 0 6px rgba(97, 226, 255, 0.5); }
+    100% { opacity: 0.82; text-shadow: 0 0 10px rgba(97, 226, 255, 0.8); }
 }
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   NEURAL LOAD — VRAM monitor for Spider-Sense
-   Pulses magenta when a model is loaded. The spider is thinking.
+   NEURAL LOAD — VRAM monitor for Spider-Sense (Ollama)
    ══════════════════════════════════════════════════════════════════════ */
 
 #custom-neuralload {
@@ -439,8 +431,8 @@ tooltip label {
 #custom-neuralload.active {
     color: @neon_magenta;
     text-shadow:
-        0 0 6px rgba(255, 0, 255, 0.6),
-        0 0 16px rgba(255, 0, 255, 0.25);
+        0 0 6px rgba(175, 109, 249, 0.6),
+        0 0 16px rgba(175, 109, 249, 0.25);
     animation: neuralPulse 1.5s ease-in-out infinite alternate;
 }
 
@@ -450,11 +442,11 @@ tooltip label {
 }
 
 @keyframes neuralPulse {
-    0%   { opacity: 0.85; text-shadow: 0 0 4px rgba(255, 0, 255, 0.3), 0 0 10px rgba(255, 0, 255, 0.1); }
-    100% { opacity: 1.0;  text-shadow: 0 0 8px rgba(255, 0, 255, 0.7), 0 0 20px rgba(255, 0, 255, 0.35); }
+    0%   { opacity: 0.85; text-shadow: 0 0 4px rgba(175, 109, 249, 0.3); }
+    100% { opacity: 1.0;  text-shadow: 0 0 8px rgba(175, 109, 249, 0.7); }
 }
 
 
 /* ── End of stylesheet ────────────────────────────────────────────────
-   "Mess with the best, die like the rest." — Zero Cool
+   "Hack the Planet."
    ──────────────────────────────────────────────────────────────────── */

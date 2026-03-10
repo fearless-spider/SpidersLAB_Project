@@ -27,15 +27,15 @@ DIR = os.path.dirname(os.path.abspath(__file__))
 ICONS_DIR = os.path.join(DIR, "icons")
 os.makedirs(ICONS_DIR, exist_ok=True)
 
-# ── Colors ────────────────────────────────────────────────────────────
-BLACK = (0, 0, 0)
-SPIDER_RED = (255, 0, 0)
-CRT_GREEN = (0, 200, 0)
-DIM_GREEN = (0, 80, 0)
-ELECTRIC_CYAN = (0, 255, 255)
-NEON_MAGENTA = (255, 0, 255)
-DARK_RED = (40, 0, 0)
-PHOSPHOR = (0, 30, 0)
+# ── Colors — Fluoromachine Palette ──────────────────────────────────
+DEEP_PURPLE = (25, 23, 36)
+HOT_PINK = (252, 25, 154)
+ELECTRIC_CYAN = (97, 226, 255)
+DIM_CYAN = (58, 138, 158)
+NEON_PURPLE = (175, 109, 249)
+DIM_PURPLE = (59, 52, 85)
+DARK_PURPLE = (30, 20, 50)
+PHOSPHOR = (25, 15, 40)
 SCANLINE_COLOR = (0, 0, 0, 70)
 
 W, H = 1920, 1080
@@ -45,14 +45,14 @@ W, H = 1920, 1080
 #  1. BACKGROUND — CRT with scanlines, vignette, phosphor glow
 # ══════════════════════════════════════════════════════════════════════
 def generate_background():
-    img = Image.new("RGB", (W, H), BLACK)
+    img = Image.new("RGB", (W, H), DEEP_PURPLE)
     draw = ImageDraw.Draw(img)
 
     # Subtle phosphor base tint
     for y in range(H):
         for x in range(0, W, 4):
             noise = random.randint(0, 6)
-            img.putpixel((x, y), (noise, noise + random.randint(0, 3), noise))
+            img.putpixel((x, y), (noise + random.randint(0, 3), noise, noise + random.randint(0, 5)))
 
     # CRT scanlines — every other line gets darkened
     overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
@@ -92,7 +92,7 @@ def generate_background():
         angle = (2 * math.pi * i) / num_radials
         ex = web_cx + int(max_radius * math.cos(angle))
         ey = web_cy + int(max_radius * math.sin(angle))
-        web_draw.line([(web_cx, web_cy), (ex, ey)], fill=(255, 0, 0, 12), width=1)
+        web_draw.line([(web_cx, web_cy), (ex, ey)], fill=(252, 25, 154, 12), width=1)
     for ring in range(1, 7):
         r = int(max_radius * ring / 6)
         pts = []
@@ -101,24 +101,24 @@ def generate_background():
             pts.append((web_cx + int(r * math.cos(angle)), web_cy + int(r * math.sin(angle))))
         pts.append(pts[0])
         for j in range(len(pts) - 1):
-            web_draw.line([pts[j], pts[j + 1]], fill=(255, 0, 0, 8), width=1)
+            web_draw.line([pts[j], pts[j + 1]], fill=(252, 25, 154, 8), width=1)
 
     img = Image.alpha_composite(img, web_overlay)
 
     # Top banner area — faint red line
     draw2 = ImageDraw.Draw(img)
-    draw2.line([(100, 180), (W - 100, 180)], fill=(255, 0, 0, 40), width=1)
-    draw2.line([(100, H - 180), (W - 100, H - 180)], fill=(255, 0, 0, 40), width=1)
+    draw2.line([(100, 180), (W - 100, 180)], fill=(252, 25, 154, 40), width=1)
+    draw2.line([(100, H - 180), (W - 100, H - 180)], fill=(252, 25, 154, 40), width=1)
 
     # CRT corner glow — very subtle red in corners
     corner_glow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     cg_draw = ImageDraw.Draw(corner_glow)
     for r in range(200, 0, -2):
         alpha = int(8 * (1 - r / 200))
-        cg_draw.ellipse([0 - r, 0 - r, r, r], fill=(255, 0, 0, alpha))
-        cg_draw.ellipse([W - r, 0 - r, W + r, r], fill=(255, 0, 0, alpha))
-        cg_draw.ellipse([0 - r, H - r, r, H + r], fill=(255, 0, 0, alpha))
-        cg_draw.ellipse([W - r, H - r, W + r, H + r], fill=(255, 0, 0, alpha))
+        cg_draw.ellipse([0 - r, 0 - r, r, r], fill=(175, 109, 249, alpha))
+        cg_draw.ellipse([W - r, 0 - r, W + r, r], fill=(175, 109, 249, alpha))
+        cg_draw.ellipse([0 - r, H - r, r, H + r], fill=(175, 109, 249, alpha))
+        cg_draw.ellipse([W - r, H - r, W + r, H + r], fill=(175, 109, 249, alpha))
 
     img = Image.alpha_composite(img, corner_glow)
 
@@ -133,9 +133,9 @@ def generate_terminal_box():
     # GRUB uses styled_box with directional slices:
     # {c, n, s, e, w, ne, nw, se, sw}
     size = 8
-    border_color = (255, 0, 0, 100)
-    fill_color = (0, 0, 0, 200)
-    corner_color = (255, 0, 0, 160)
+    border_color = (252, 25, 154, 100)
+    fill_color = (25, 23, 36, 200)
+    corner_color = (252, 25, 154, 160)
 
     parts = {
         "c":  (fill_color,),
@@ -188,8 +188,8 @@ def generate_terminal_box():
 # ══════════════════════════════════════════════════════════════════════
 def generate_selection():
     size = 8
-    sel_color = (255, 0, 0, 50)
-    sel_border = (255, 0, 0, 180)
+    sel_color = (252, 25, 154, 50)
+    sel_border = (252, 25, 154, 180)
 
     parts = {
         "c":  sel_color,
@@ -231,7 +231,7 @@ def generate_progress_bar():
     hd = ImageDraw.Draw(highlight)
     for y in range(bar_h):
         alpha = 200 if y % 2 == 0 else 140
-        hd.line([(0, y), (bar_h - 1, y)], fill=(0, 255, 255, alpha))
+        hd.line([(0, y), (bar_h - 1, y)], fill=(97, 226, 255, alpha))
 
     parts_hl = {"c": highlight}
     for name, img in parts_hl.items():
@@ -242,7 +242,7 @@ def generate_progress_bar():
     bd = ImageDraw.Draw(bg)
     for y in range(bar_h):
         alpha = 120 if y % 2 == 0 else 80
-        bd.line([(0, y), (bar_h - 1, y)], fill=(30, 0, 0, alpha))
+        bd.line([(0, y), (bar_h - 1, y)], fill=(30, 20, 50, alpha))
 
     parts_bg = {"c": bg}
     for name, img in parts_bg.items():
@@ -260,13 +260,13 @@ def generate_slider():
     # Slider thumb
     thumb = Image.new("RGBA", (sw, sh), (0, 0, 0, 0))
     td = ImageDraw.Draw(thumb)
-    td.rectangle([1, 1, sw - 2, sh - 2], fill=(255, 0, 0, 160), outline=(255, 0, 0, 200))
+    td.rectangle([1, 1, sw - 2, sh - 2], fill=(252, 25, 154, 160), outline=(252, 25, 154, 200))
     thumb.save(os.path.join(DIR, "slider_c.png"))
 
     # Slider track
     track = Image.new("RGBA", (sw, sh), (0, 0, 0, 0))
     tkd = ImageDraw.Draw(track)
-    tkd.rectangle([2, 0, sw - 3, sh - 1], fill=(40, 0, 0, 80))
+    tkd.rectangle([2, 0, sw - 3, sh - 1], fill=(30, 20, 50, 80))
     track.save(os.path.join(DIR, "scrollbar_c.png"))
 
     print("[+] slider_c.png + scrollbar_c.png")
@@ -288,29 +288,29 @@ def generate_icons():
     def draw_arch(d, s):
         cx, cy = s // 2, s // 2
         # Body
-        d.ellipse([cx - 4, cy - 3, cx + 4, cy + 3], fill=SPIDER_RED)
-        d.ellipse([cx - 2, cy - 6, cx + 2, cy - 2], fill=SPIDER_RED)
+        d.ellipse([cx - 4, cy - 3, cx + 4, cy + 3], fill=HOT_PINK)
+        d.ellipse([cx - 2, cy - 6, cx + 2, cy - 2], fill=HOT_PINK)
         # Legs
         for angle_offset in [-45, -25, 25, 45]:
             angle = math.radians(angle_offset)
             for side in [-1, 1]:
                 ex = cx + int(12 * math.cos(angle) * side)
                 ey = cy + int(10 * math.sin(angle))
-                d.line([(cx + 3 * side, cy), (ex, ey)], fill=SPIDER_RED, width=1)
+                d.line([(cx + 3 * side, cy), (ex, ey)], fill=HOT_PINK, width=1)
 
     def draw_shutdown(d, s):
         cx, cy = s // 2, s // 2
         r = 10
-        d.arc([cx - r, cy - r, cx + r, cy + r], start=220, end=320, fill=SPIDER_RED, width=2)
-        d.line([(cx, cy - r - 2), (cx, cy - 2)], fill=SPIDER_RED, width=2)
+        d.arc([cx - r, cy - r, cx + r, cy + r], start=220, end=320, fill=HOT_PINK, width=2)
+        d.line([(cx, cy - r - 2), (cx, cy - 2)], fill=HOT_PINK, width=2)
 
     def draw_reboot(d, s):
         cx, cy = s // 2, s // 2
         r = 10
-        d.arc([cx - r, cy - r, cx + r, cy + r], start=0, end=300, fill=SPIDER_RED, width=2)
+        d.arc([cx - r, cy - r, cx + r, cy + r], start=0, end=300, fill=HOT_PINK, width=2)
         # Arrow
         d.polygon([(cx + r - 2, cy - r - 3), (cx + r + 3, cy - r + 2), (cx + r - 2, cy - r + 2)],
-                  fill=SPIDER_RED)
+                  fill=HOT_PINK)
 
     def draw_efi(d, s):
         cx, cy = s // 2, s // 2
@@ -322,9 +322,9 @@ def generate_icons():
     def draw_memtest(d, s):
         cx, cy = s // 2, s // 2
         # RAM chip shape
-        d.rectangle([cx - 10, cy - 5, cx + 10, cy + 5], outline=CRT_GREEN, width=1)
+        d.rectangle([cx - 10, cy - 5, cx + 10, cy + 5], outline=ELECTRIC_CYAN, width=1)
         for i in range(-8, 9, 4):
-            d.line([(cx + i, cy + 5), (cx + i, cy + 9)], fill=CRT_GREEN, width=1)
+            d.line([(cx + i, cy + 5), (cx + i, cy + 9)], fill=ELECTRIC_CYAN, width=1)
 
     make_icon("arch", draw_arch)
     make_icon("shutdown", draw_shutdown)

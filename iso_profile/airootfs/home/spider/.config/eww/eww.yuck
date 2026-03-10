@@ -37,6 +37,25 @@
 (defpoll net_interface :interval "10s"
   `ip route get 1.1.1.1 2>/dev/null | awk '{print $5; exit}' || echo "none"`)
 
+;; Electrical Hazard — CPU freq, cores, uptime, load, disk I/O
+(defpoll cpu_freq :interval "2s"
+  `awk '/cpu MHz/{sum+=$4; n++} END{printf "%.0f", sum/n}' /proc/cpuinfo`)
+
+(defpoll core_count :interval "60s"
+  `nproc`)
+
+(defpoll sys_uptime :interval "30s"
+  `uptime -p | sed 's/up //'`)
+
+(defpoll sys_load :interval "5s"
+  `awk '{print $1}' /proc/loadavg`)
+
+(defpoll disk_read :interval "3s"
+  `~/.config/eww/scripts/disk-io.sh read`)
+
+(defpoll disk_write :interval "3s"
+  `~/.config/eww/scripts/disk-io.sh write`)
+
 ;; System logs — last 5 entries (simulated network chatter)
 (defpoll syslog_feed :interval "3s"
   `journalctl --no-pager -n 5 -o short-iso --no-hostname 2>/dev/null | tac | sed 's/^[^ ]* //' | sed 's/\"/\\\\\"/g'`)
@@ -126,6 +145,47 @@
     (label :text clock_date :class "clock-date")))
 
 
+;; Electrical Hazard panel — system status, CPU freq, disk I/O
+(defwidget electrical-hazard []
+  (box :class "panel hazard-panel" :orientation "v" :space-evenly false
+    ;; Hazard stripe header
+    (box :class "hazard-stripes")
+    ;; Title
+    (label :text "⚡ ELECTRICAL HAZARD" :class "hazard-title")
+    ;; System Status
+    (box :class "hazard-section" :orientation "v" :space-evenly false
+      (label :text "SYSTEM STATUS" :class "hazard-section-title")
+      (box :orientation "h" :space-evenly true :class "hazard-row"
+        (box :orientation "h" :space-evenly false
+          (label :text "UPTIME " :class "hazard-label")
+          (label :text sys_uptime :class "hazard-value"))
+        (box :orientation "h" :space-evenly false
+          (label :text "LOAD " :class "hazard-label")
+          (label :text sys_load :class "hazard-value"))))
+    ;; Processor
+    (box :class "hazard-section" :orientation "v" :space-evenly false
+      (label :text "PROCESSOR" :class "hazard-section-title")
+      (box :orientation "h" :space-evenly true :class "hazard-row"
+        (box :orientation "h" :space-evenly false
+          (label :text "FREQ " :class "hazard-label")
+          (label :text "${cpu_freq} MHz" :class "hazard-value-hot"))
+        (box :orientation "h" :space-evenly false
+          (label :text "CORES " :class "hazard-label")
+          (label :text core_count :class "hazard-value"))))
+    ;; Storage
+    (box :class "hazard-section" :orientation "v" :space-evenly false
+      (label :text "STORAGE I/O" :class "hazard-section-title")
+      (box :orientation "h" :space-evenly true :class "hazard-row"
+        (box :orientation "h" :space-evenly false
+          (label :text "READ " :class "hazard-label")
+          (label :text disk_read :class "hazard-value"))
+        (box :orientation "h" :space-evenly false
+          (label :text "WRITE " :class "hazard-label")
+          (label :text disk_write :class "hazard-value"))))
+    ;; Bottom stripe
+    (box :class "hazard-stripes")))
+
+
 ;; ── MAIN SIDEBAR ASSEMBLY ───────────────────────────────────────────────
 
 (defwidget sidebar []
@@ -133,6 +193,7 @@
     (hud-clock)
     (neural-load)
     (signal-bar)
+    (electrical-hazard)
     (net-log)))
 
 

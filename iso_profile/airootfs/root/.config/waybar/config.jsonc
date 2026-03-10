@@ -1,16 +1,19 @@
 // ╔══════════════════════════════════════════════════════════════════════╗
-// ║  SPIDER'S LAB — WAYBAR MODULE CONFIG                               ║
+// ║  SPIDER'S LAB — HOLOGRAPHIC WAYBAR                                ║
 // ║                                                                    ║
-// ║  "I zero-cool crashed 1507 systems in one day." — Zero Cool        ║
+// ║  "Hack the Planet." — Dade Murphy                                 ║
 // ║                                                                    ║
-// ║  Every module is a sensor. Every readout is intelligence.          ║
-// ║  The bar is the spider's nervous system.                           ║
+// ║  Floating frosted panel. Neon-red border. Cyber-icons.            ║
+// ║  The spider's neural HUD — Night City edition.                    ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 {
     "layer": "top",
     "position": "top",
-    "height": 36,
+    "height": 40,
     "spacing": 0,
+    "margin-top": 6,
+    "margin-left": 10,
+    "margin-right": 10,
     "reload_style_on_change": true,
 
     // ── LAYOUT — left / center / right ───────────────────────────
@@ -26,6 +29,8 @@
 
     "modules-right": [
         "custom/gpu",
+        "custom/separator",
+        "custom/vram",
         "custom/separator",
         "cpu",
         "custom/separator",
@@ -45,45 +50,59 @@
         "custom/separator",
         "tray",
         "custom/separator",
+        "custom/ghost",
+        "custom/separator",
         "custom/power"
     ],
 
     // ══════════════════════════════════════════════════════════════
-    //  CUSTOM MODULES — the spider's special senses
+    //  CUSTOM MODULES
     // ══════════════════════════════════════════════════════════════
 
-    // Spider logo — always watching from the left
+    // Spider logo
     "custom/logo": {
         "format": "🕷️",
         "tooltip": false
     },
 
-    // Pipe separator — the data bus
     "custom/separator": {
         "format": "│",
         "tooltip": false
     },
 
-    // Power button — one click from lights out
+    "custom/ghost": {
+        "format": "󰊠",
+        "on-click": "kitty --title ghost-protocol -e ghost-out",
+        "on-click-right": "kitty --title ghost-protocol -e ghost-out --reboot",
+        "tooltip-format": "Ghost Protocol — Left: poweroff / Right: reboot"
+    },
+
     "custom/power": {
         "format": "⏻",
         "on-click": "spider-power-menu",
         "tooltip-format": "Power Menu"
     },
 
-    // GPU monitor — RTX 3060 vitals via nvidia-smi
-    // Updates every 5 seconds. Shows load% and temp.
+    // GPU Load — RTX 3060
     "custom/gpu": {
-        "exec": "nvidia-smi --query-gpu=utilization.gpu,temperature.gpu --format=csv,noheader,nounits 2>/dev/null | awk -F', ' '{printf \"󰢮 %s%%  %s°C\", $1, $2}' || echo '󰢮 N/A'",
+        "exec": "nvidia-smi --query-gpu=utilization.gpu,temperature.gpu --format=csv,noheader,nounits 2>/dev/null | awk -F', ' '{printf \"󰾲 %s%%  %s°C\", $1, $2}' || echo '󰾲 N/A'",
         "return-type": "",
         "interval": 5,
         "format": "{}",
-        "tooltip-format": "NVIDIA RTX 3060 — GPU Load &amp; Temperature"
+        "tooltip-format": "RTX 3060 — GPU Load &amp; Temperature"
+    },
+
+    // VRAM Usage — RTX 3060 (12GB)
+    "custom/vram": {
+        "exec": "nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits 2>/dev/null | awk -F', ' '{printf \"󰍛 %.1fG / %.1fG\", $1/1024, $2/1024}' || echo '󰍛 N/A'",
+        "return-type": "",
+        "interval": 5,
+        "format": "{}",
+        "tooltip-format": "RTX 3060 — VRAM Allocation"
     },
 
     // ══════════════════════════════════════════════════════════════
-    //  WORKSPACES — parallel dimensions
-    //  Roman numerals. Because binary is too easy.
+    //  WORKSPACES
     // ══════════════════════════════════════════════════════════════
 
     "hyprland/workspaces": {
@@ -109,7 +128,7 @@
     },
 
     // ══════════════════════════════════════════════════════════════
-    //  CLOCK — the one constant in chaos
+    //  CLOCK
     // ══════════════════════════════════════════════════════════════
 
     "clock": {
@@ -122,11 +141,11 @@
             "weeks-pos": "left",
             "on-scroll": 1,
             "format": {
-                "months": "<span color='#FF0000'><b>{}</b></span>",
-                "days": "<span color='#D4D4D4'>{}</span>",
-                "weeks": "<span color='#555555'>W{}</span>",
-                "weekdays": "<span color='#00FFFF'><b>{}</b></span>",
-                "today": "<span color='#FF00FF'><b><u>{}</u></b></span>"
+                "months": "<span color='#FC199A'><b>{}</b></span>",
+                "days": "<span color='#E8E3E3'>{}</span>",
+                "weeks": "<span color='#6B5F7B'>W{}</span>",
+                "weekdays": "<span color='#61E2FF'><b>{}</b></span>",
+                "today": "<span color='#AF6DF9'><b><u>{}</u></b></span>"
             }
         }
     },
@@ -138,10 +157,7 @@
     "cpu": {
         "format": " {usage}%",
         "interval": 3,
-        "states": {
-            "warning": 70,
-            "critical": 90
-        },
+        "states": { "warning": 70, "critical": 90 },
         "tooltip-format": "CPU Load: {usage}%\nFrequency: {avg_frequency} GHz"
     },
 
@@ -149,10 +165,7 @@
         "format": " {percentage}%",
         "format-alt": " {used:0.1f}G / {total:0.1f}G",
         "interval": 5,
-        "states": {
-            "warning": 70,
-            "critical": 90
-        },
+        "states": { "warning": 70, "critical": 90 },
         "tooltip-format": "RAM: {used:0.1f}G / {total:0.1f}G ({percentage}%)\nSwap: {swapUsed:0.1f}G / {swapTotal:0.1f}G"
     },
 
@@ -163,7 +176,7 @@
     },
 
     // ══════════════════════════════════════════════════════════════
-    //  NETWORK — the spider's connection to the world
+    //  NETWORK
     // ══════════════════════════════════════════════════════════════
 
     "network": {
@@ -177,10 +190,6 @@
         "tooltip-format-disconnected": "No connection. You're invisible."
     },
 
-    // ══════════════════════════════════════════════════════════════
-    //  NETWORK TRAFFIC HUD — real-time RX/TX delta
-    // ══════════════════════════════════════════════════════════════
-
     "custom/nettraffic": {
         "exec": "spider-nettraffic",
         "return-type": "json",
@@ -188,11 +197,6 @@
         "format": "{}",
         "tooltip": true
     },
-
-    // ══════════════════════════════════════════════════════════════
-    //  NEURAL LOAD — VRAM monitor for Spider-Sense (Ollama)
-    //  Glows when a model is loaded into GPU memory.
-    // ══════════════════════════════════════════════════════════════
 
     "custom/neuralload": {
         "exec": "spider-neuralload",
@@ -203,22 +207,16 @@
     },
 
     // ══════════════════════════════════════════════════════════════
-    //  AUDIO — signal monitoring
+    //  AUDIO / BATTERY / TRAY
     // ══════════════════════════════════════════════════════════════
 
     "pulseaudio": {
         "format": "{icon} {volume}%",
         "format-muted": "󰖁 MUTE",
-        "format-icons": {
-            "default": ["󰕿", "󰖀", "󰕾"]
-        },
+        "format-icons": { "default": ["󰕿", "󰖀", "󰕾"] },
         "on-click": "pavucontrol",
         "tooltip-format": "Volume: {volume}%\nOutput: {desc}"
     },
-
-    // ══════════════════════════════════════════════════════════════
-    //  BATTERY — power reserves
-    // ══════════════════════════════════════════════════════════════
 
     "battery": {
         "format": "{icon} {capacity}%",
@@ -226,16 +224,9 @@
         "format-plugged": "󰚥 {capacity}%",
         "format-full": "󰁹 FULL",
         "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
-        "states": {
-            "warning": 25,
-            "critical": 10
-        },
+        "states": { "warning": 25, "critical": 10 },
         "tooltip-format": "Battery: {capacity}%\nDraw: {power:.1f}W\n{timeTo}"
     },
-
-    // ══════════════════════════════════════════════════════════════
-    //  SYSTEM TRAY — the hidden processes
-    // ══════════════════════════════════════════════════════════════
 
     "tray": {
         "icon-size": 14,

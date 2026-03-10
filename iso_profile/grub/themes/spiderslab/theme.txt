@@ -1,12 +1,12 @@
 # ╔══════════════════════════════════════════════════════════════════════╗
 # ║  SPIDER'S LAB — GRUB THEME                                        ║
-# ║  CRT Monitor Aesthetic. 1995 Terminal. Zero Cool approved.        ║
+# ║  Fluoromachine Aesthetic. Deep purple void. Neon edges.           ║
 # ║  "Hack the Planet."                                                ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 # ── Desktop ───────────────────────────────────────────────────────────
 desktop-image: "background.png"
-desktop-color: "#000000"
+desktop-color: "#191724"
 
 # ── Title Banner ──────────────────────────────────────────────────────
 # Top-left terminal prompt
@@ -16,7 +16,7 @@ desktop-color: "#000000"
     width = 90%
     height = 30
     text = "root@spiderslab:~# boot --target=kernel"
-    color = "#FF0000"
+    color = "#FC199A"
     align = "left"
 }
 
@@ -27,7 +27,7 @@ desktop-color: "#000000"
     width = 100%
     height = 55
     text = ">>> SPIDER'S LAB <<<"
-    color = "#FF0000"
+    color = "#FC199A"
     align = "center"
 }
 
@@ -38,7 +38,7 @@ desktop-color: "#000000"
     width = 100%
     height = 25
     text = "[ CYBERPUNK HACKER WORKSTATION // KERNEL SELECT ]"
-    color = "#00C800"
+    color = "#61E2FF"
     align = "center"
 }
 
@@ -49,7 +49,7 @@ desktop-color: "#000000"
     width = 90%
     height = 20
     text = "────────────────────────────────────────────────────────────────────"
-    color = "#500000"
+    color = "#3B3455"
     align = "center"
 }
 
@@ -62,8 +62,8 @@ desktop-color: "#000000"
     height = 50%
 
     # Menu item styling
-    item_color = "#00C800"
-    selected_item_color = "#FF0000"
+    item_color = "#E8E3E3"
+    selected_item_color = "#FC199A"
     item_height = 36
     item_padding = 8
     item_spacing = 4
@@ -97,11 +97,11 @@ desktop-color: "#000000"
     highlight_style = "progress_highlight_*.png"
 
     # Filled = cyan, empty = dark red
-    fg_color = "#00FFFF"
-    bg_color = "#280000"
-    border_color = "#FF0000"
+    fg_color = "#61E2FF"
+    bg_color = "#191724"
+    border_color = "#FC199A"
 
-    text_color = "#00FFFF"
+    text_color = "#61E2FF"
     text = "@TIMEOUT_NOTIFICATION_LONG@"
 }
 
@@ -112,7 +112,7 @@ desktop-color: "#000000"
     width = 100%
     height = 25
     text = ":: Hacking in progress... stand by for kernel injection ::"
-    color = "#00FFFF"
+    color = "#61E2FF"
     align = "center"
 }
 
@@ -125,7 +125,7 @@ desktop-color: "#000000"
     width = 90%
     height = 20
     text = "────────────────────────────────────────────────────────────────────"
-    color = "#500000"
+    color = "#3B3455"
     align = "center"
 }
 
@@ -136,7 +136,7 @@ desktop-color: "#000000"
     width = 100%
     height = 22
     text = "[↑/↓] Navigate    [Enter] Boot    [e] Edit    [c] GRUB Shell"
-    color = "#005000"
+    color = "#6B5F7B"
     align = "center"
 }
 
@@ -147,7 +147,7 @@ desktop-color: "#000000"
     width = 100%
     height = 20
     text = "NVIDIA RTX 3060 // Wayland // Hyprland // CachyOS Kernel"
-    color = "#500000"
+    color = "#3B3455"
     align = "center"
 }
 
@@ -158,6 +158,6 @@ desktop-color: "#000000"
     width = 100%
     height = 20
     text = "Spider's LAB v1.0 — \"There is no right and wrong. There's only fun and boring.\""
-    color = "#300000"
+    color = "#3B3455"
     align = "center"
 }
