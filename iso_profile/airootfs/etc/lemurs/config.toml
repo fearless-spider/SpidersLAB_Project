@@ -1,0 +1,161 @@
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  Spider's LAB — Lemurs Display Manager Configuration                   ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+# Note: All options must be present. Lemurs will not work with missing fields.
+#
+# Colors: black, white, (dark) gray, (light) red, (light) blue,
+#         (light) green, (light) magenta, (light) cyan, (light) yellow,
+#         orange, or hex codes like "#87CEEB"
+#
+# Modifiers: bold, dim, italic, underlined, reverse, crossed out, hidden
+#            Combine with comma: "bold,italic"
+
+# The tty which contains lemurs. This has to be mirrored in the lemurs.service
+tty = 2
+
+# Where to log the main lemurs control flow.
+main_log_path = "/var/log/lemurs.log"
+
+# Where to log to for the client.
+client_log_path = "/var/log/lemurs.client.log"
+
+# Cache path. Use `/dev/null` to disable globally.
+cache_path = "/var/cache/lemurs"
+
+# Disable all logging. Overwritten by the `--no-log` flag.
+do_log = true
+
+# The PAM service used to login
+pam_service = "lemurs"
+
+# System shell — ZSH for Spider's LAB
+system_shell = "/bin/zsh"
+
+# Initial PATH
+initial_path = "/usr/local/sbin:/usr/local/bin:/usr/bin"
+
+# Login flag — 'long' produces `--login`, suited for zsh
+shell_login_flag = "long"
+
+# Focus behaviour: start on the username field
+focus_behaviour = "username"
+
+# -- Background
+[background]
+show_background = true
+
+[background.style]
+color = "#0a0a0f"
+show_border = true
+border_color = "dark gray"
+
+# -- Power Controls
+[power_controls]
+hint_margin = 2
+entries = []
+
+# Shutdown (F1)
+[[power_controls.base_entries]]
+hint = "Shutdown"
+hint_color = "dark gray"
+hint_modifiers = ""
+key = "F1"
+cmd = "systemctl poweroff -l"
+
+# Reboot (F2)
+[[power_controls.base_entries]]
+hint = "Reboot"
+hint_color = "dark gray"
+hint_modifiers = ""
+key = "F2"
+cmd = "systemctl reboot -l"
+
+# -- Environment Switcher
+[environment_switcher]
+switcher_visibility = "visible"
+toggle_hint = "Switcher %key%"
+toggle_hint_color = "dark gray"
+toggle_hint_modifiers = ""
+
+include_tty_shell = false
+remember = true
+show_movers = true
+
+mover_color = "dark gray"
+mover_modifiers = ""
+mover_color_focused = "orange"
+mover_modifiers_focused = "bold"
+
+left_mover = "<"
+right_mover = ">"
+mover_margin = 1
+
+show_neighbours = true
+neighbour_color = "dark gray"
+neighbour_modifiers = ""
+neighbour_color_focused = "gray"
+neighbour_modifiers_focused = ""
+neighbour_margin = 1
+
+selected_color = "gray"
+selected_modifiers = "underlined"
+selected_color_focused = "white"
+selected_modifiers_focused = "bold"
+
+max_display_length = 8
+no_envs_text = "No environments..."
+no_envs_color = "white"
+no_envs_modifiers = ""
+no_envs_color_focused = "red"
+no_envs_modifiers_focused = ""
+
+# -- Username Field
+[username_field]
+remember = true
+
+[username_field.style]
+show_title = true
+title = "Login"
+title_color = "white"
+content_color = "white"
+title_color_focused = "orange"
+content_color_focused = "orange"
+show_border = true
+border_color = "white"
+border_color_focused = "orange"
+use_max_width = true
+max_width = 48
+
+# -- Password Field
+[password_field]
+content_replacement_character = "*"
+
+[password_field.style]
+show_title = true
+title = "Password"
+title_color = "white"
+content_color = "white"
+title_color_focused = "orange"
+content_color_focused = "orange"
+show_border = true
+border_color = "white"
+border_color_focused = "orange"
+use_max_width = true
+max_width = 48
+
+# -- X11 (fallback)
+[x11]
+xserver_log_path = "/var/log/lemurs.xorg.log"
+x11_display = ":1"
+xserver_timeout_secs = 60
+xserver_path = "/usr/bin/X"
+xauth_path = "/usr/bin/xauth"
+scripts_path = "/etc/lemurs/wms"
+xsetup_path = "/etc/lemurs/xsetup.sh"
+xsessions_path = "/usr/share/xsessions"
+
+# -- Wayland (primary)
+[wayland]
+scripts_path = "/etc/lemurs/wayland"
+wayland_sessions_path = "/usr/share/wayland-sessions"

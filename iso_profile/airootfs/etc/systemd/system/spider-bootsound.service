@@ -1,0 +1,15 @@
+[Unit]
+Description=Spider's LAB — Boot Sound Trigger
+After=sound.target pipewire.service pipewire-pulse.service
+Wants=pipewire.service pipewire-pulse.service
+
+[Service]
+Type=oneshot
+User=spider
+ExecStart=/usr/local/bin/spider-bootsound
+RemainAfterExit=no
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

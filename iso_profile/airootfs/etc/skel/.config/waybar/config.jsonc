@@ -1,0 +1,244 @@
+// ╔══════════════════════════════════════════════════════════════════════╗
+// ║  SPIDER'S LAB — WAYBAR MODULE CONFIG                               ║
+// ║                                                                    ║
+// ║  "I zero-cool crashed 1507 systems in one day." — Zero Cool        ║
+// ║                                                                    ║
+// ║  Every module is a sensor. Every readout is intelligence.          ║
+// ║  The bar is the spider's nervous system.                           ║
+// ╚══════════════════════════════════════════════════════════════════════╝
+{
+    "layer": "top",
+    "position": "top",
+    "height": 36,
+    "spacing": 0,
+    "reload_style_on_change": true,
+
+    // ── LAYOUT — left / center / right ───────────────────────────
+    "modules-left": [
+        "custom/logo",
+        "custom/separator",
+        "hyprland/workspaces"
+    ],
+
+    "modules-center": [
+        "clock"
+    ],
+
+    "modules-right": [
+        "custom/gpu",
+        "custom/separator",
+        "cpu",
+        "custom/separator",
+        "memory",
+        "custom/separator",
+        "temperature",
+        "custom/separator",
+        "network",
+        "custom/separator",
+        "custom/nettraffic",
+        "custom/separator",
+        "custom/neuralload",
+        "custom/separator",
+        "pulseaudio",
+        "custom/separator",
+        "battery",
+        "custom/separator",
+        "tray",
+        "custom/separator",
+        "custom/power"
+    ],
+
+    // ══════════════════════════════════════════════════════════════
+    //  CUSTOM MODULES — the spider's special senses
+    // ══════════════════════════════════════════════════════════════
+
+    // Spider logo — always watching from the left
+    "custom/logo": {
+        "format": "🕷️",
+        "tooltip": false
+    },
+
+    // Pipe separator — the data bus
+    "custom/separator": {
+        "format": "│",
+        "tooltip": false
+    },
+
+    // Power button — one click from lights out
+    "custom/power": {
+        "format": "⏻",
+        "on-click": "spider-power-menu",
+        "tooltip-format": "Power Menu"
+    },
+
+    // GPU monitor — RTX 3060 vitals via nvidia-smi
+    // Updates every 5 seconds. Shows load% and temp.
+    "custom/gpu": {
+        "exec": "nvidia-smi --query-gpu=utilization.gpu,temperature.gpu --format=csv,noheader,nounits 2>/dev/null | awk -F', ' '{printf \"󰢮 %s%%  %s°C\", $1, $2}' || echo '󰢮 N/A'",
+        "return-type": "",
+        "interval": 5,
+        "format": "{}",
+        "tooltip-format": "NVIDIA RTX 3060 — GPU Load &amp; Temperature"
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    //  WORKSPACES — parallel dimensions
+    //  Roman numerals. Because binary is too easy.
+    // ══════════════════════════════════════════════════════════════
+
+    "hyprland/workspaces": {
+        "format": "{icon}",
+        "format-icons": {
+            "1": "I",
+            "2": "II",
+            "3": "III",
+            "4": "IV",
+            "5": "V",
+            "6": "VI",
+            "7": "VII",
+            "8": "VIII",
+            "9": "IX",
+            "10": "X",
+            "special": ""
+        },
+        "on-click": "activate",
+        "sort-by-number": true,
+        "persistent-workspaces": {
+            "*": 5
+        }
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    //  CLOCK — the one constant in chaos
+    // ══════════════════════════════════════════════════════════════
+
+    "clock": {
+        "format": "  {:%H:%M:%S}",
+        "format-alt": "  {:%Y-%m-%d  %H:%M}",
+        "interval": 1,
+        "tooltip-format": "<tt><small>{calendar}</small></tt>",
+        "calendar": {
+            "mode": "month",
+            "weeks-pos": "left",
+            "on-scroll": 1,
+            "format": {
+                "months": "<span color='#FF0000'><b>{}</b></span>",
+                "days": "<span color='#D4D4D4'>{}</span>",
+                "weeks": "<span color='#555555'>W{}</span>",
+                "weekdays": "<span color='#00FFFF'><b>{}</b></span>",
+                "today": "<span color='#FF00FF'><b><u>{}</u></b></span>"
+            }
+        }
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    //  HARDWARE SENSORS
+    // ══════════════════════════════════════════════════════════════
+
+    "cpu": {
+        "format": " {usage}%",
+        "interval": 3,
+        "states": {
+            "warning": 70,
+            "critical": 90
+        },
+        "tooltip-format": "CPU Load: {usage}%\nFrequency: {avg_frequency} GHz"
+    },
+
+    "memory": {
+        "format": " {percentage}%",
+        "format-alt": " {used:0.1f}G / {total:0.1f}G",
+        "interval": 5,
+        "states": {
+            "warning": 70,
+            "critical": 90
+        },
+        "tooltip-format": "RAM: {used:0.1f}G / {total:0.1f}G ({percentage}%)\nSwap: {swapUsed:0.1f}G / {swapTotal:0.1f}G"
+    },
+
+    "temperature": {
+        "format": " {temperatureC}°C",
+        "critical-threshold": 85,
+        "tooltip-format": "CPU Thermal: {temperatureC}°C"
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    //  NETWORK — the spider's connection to the world
+    // ══════════════════════════════════════════════════════════════
+
+    "network": {
+        "format-wifi": "󰤨 {signalStrength}%",
+        "format-ethernet": "󰈀 {bandwidthTotalBytes}",
+        "format-disconnected": "󰤭 OFF",
+        "format-linked": "󰈀 {ifname}",
+        "interval": 5,
+        "tooltip-format-wifi": "SSID: {essid}\nSignal: {signalStrength}%\nFreq: {frequency}MHz\nIP: {ipaddr}/{cidr}\n↑ {bandwidthUpBytes}  ↓ {bandwidthDownBytes}",
+        "tooltip-format-ethernet": "Interface: {ifname}\nIP: {ipaddr}/{cidr}\n↑ {bandwidthUpBytes}  ↓ {bandwidthDownBytes}",
+        "tooltip-format-disconnected": "No connection. You're invisible."
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    //  NETWORK TRAFFIC HUD — real-time RX/TX delta
+    // ══════════════════════════════════════════════════════════════
+
+    "custom/nettraffic": {
+        "exec": "spider-nettraffic",
+        "return-type": "json",
+        "interval": 3,
+        "format": "{}",
+        "tooltip": true
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    //  NEURAL LOAD — VRAM monitor for Spider-Sense (Ollama)
+    //  Glows when a model is loaded into GPU memory.
+    // ══════════════════════════════════════════════════════════════
+
+    "custom/neuralload": {
+        "exec": "spider-neuralload",
+        "return-type": "json",
+        "interval": 5,
+        "format": "{}",
+        "tooltip": true
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    //  AUDIO — signal monitoring
+    // ══════════════════════════════════════════════════════════════
+
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": "󰖁 MUTE",
+        "format-icons": {
+            "default": ["󰕿", "󰖀", "󰕾"]
+        },
+        "on-click": "pavucontrol",
+        "tooltip-format": "Volume: {volume}%\nOutput: {desc}"
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    //  BATTERY — power reserves
+    // ══════════════════════════════════════════════════════════════
+
+    "battery": {
+        "format": "{icon} {capacity}%",
+        "format-charging": "󰂄 {capacity}%",
+        "format-plugged": "󰚥 {capacity}%",
+        "format-full": "󰁹 FULL",
+        "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+        "states": {
+            "warning": 25,
+            "critical": 10
+        },
+        "tooltip-format": "Battery: {capacity}%\nDraw: {power:.1f}W\n{timeTo}"
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    //  SYSTEM TRAY — the hidden processes
+    // ══════════════════════════════════════════════════════════════
+
+    "tray": {
+        "icon-size": 14,
+        "spacing": 8
+    }
+}

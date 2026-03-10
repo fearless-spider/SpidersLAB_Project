@@ -1,0 +1,22 @@
+#! /bin/sh
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  Spider's LAB — Hyprland WM Launcher (Lemurs)                         ║
+# ║  NVIDIA RTX 3060 optimized                                            ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+# -- NVIDIA DRM/GBM backend
+export GBM_BACKEND=nvidia-drm
+export __GLX_VENDOR_LIBRARY_NAME=nvidia
+export LIBVA_DRIVER_NAME=nvidia
+export WLR_NO_HARDWARE_CURSORS=1
+
+# -- Wayland / XDG defaults
+export XDG_SESSION_TYPE=wayland
+export XDG_SESSION_DESKTOP=Hyprland
+export XDG_CURRENT_DESKTOP=Hyprland
+export MOZ_ENABLE_WAYLAND=1
+export QT_QPA_PLATFORM=wayland
+export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+export SDL_VIDEODRIVER=wayland
+
+exec dbus-run-session Hyprland

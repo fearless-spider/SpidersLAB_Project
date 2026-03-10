@@ -1,0 +1,52 @@
+#!/bin/bash
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — Hyprland Launch Wrapper                     ║
+# ║  Detects VM vs bare metal. Sets env vars accordingly.       ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+LOGFILE="/tmp/hyprland.log"
+
+# Detect if running inside a VM
+IS_VM=false
+if systemd-detect-virt -q 2>/dev/null; then
+    IS_VM=true
+    echo "[spider-launch] VM detected: $(systemd-detect-virt)" | tee "$LOGFILE"
+else
+    echo "[spider-launch] Bare metal detected" | tee "$LOGFILE"
+fi
+
+if [ "$IS_VM" = true ]; then
+    # ── VM MODE (QEMU/VirtualBox/VMware) ──
+    export WLR_RENDERER_ALLOW_SOFTWARE=1
+    export WLR_NO_HARDWARE_CURSORS=1
+    export LIBGL_ALWAYS_SOFTWARE=1
+    export XDG_SESSION_TYPE=wayland
+    export AQ_DRM_DEVICES=""
+
+    # Suppress NVIDIA errors in VM — no GPU present
+    export __EGL_VENDOR_LIBRARY_FILENAMES=""
+    export __GLX_VENDOR_LIBRARY_NAME=mesa
+
+    echo "[spider-launch] Using software renderer (VM mode)" >> "$LOGFILE"
+else
+    # ── BARE METAL — NVIDIA RTX 3060 ──
+    export LIBVA_DRIVER_NAME=nvidia
+    export XDG_SESSION_TYPE=wayland
+    export GBM_BACKEND=nvidia-drm
+    export __GLX_VENDOR_LIBRARY_NAME=nvidia
+    export WLR_NO_HARDWARE_CURSORS=1
+    export WLR_DRM_NO_ATOMIC=1
+    export NIXOS_OZONE_WL=1
+    export MOZ_ENABLE_WAYLAND=1
+    echo "[spider-launch] Using NVIDIA renderer" >> "$LOGFILE"
+fi
+
+# Common Wayland env
+export QT_QPA_PLATFORM="wayland;xcb"
+export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+export GDK_BACKEND="wayland,x11,*"
+export XCURSOR_SIZE=24
+export XCURSOR_THEME=Adwaita
+
+echo "[spider-launch] Starting Hyprland..." >> "$LOGFILE"
+exec Hyprland >> "$LOGFILE" 2>&1

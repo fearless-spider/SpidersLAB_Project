@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Spider's LAB
+Description=Cyberpunk boot animation — pulsing spider web with circuit loading bar
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/spiderslab
+ScriptFile=/usr/share/plymouth/themes/spiderslab/script.script

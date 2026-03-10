@@ -1,0 +1,32 @@
+#!/bin/bash
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — Power Menu (wofi-based)                     ║
+# ║  "God wouldn't be up this late." — Dade Murphy               ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+entries="⏻ Shutdown\n Reboot\n Suspend\n Lock\n Logout"
+
+selected=$(echo -e "$entries" | wofi --dmenu \
+    --prompt "SPIDER'S LAB" \
+    --width 280 \
+    --height 250 \
+    --cache-file /dev/null \
+    --insensitive)
+
+case "$selected" in
+    *"Shutdown"*)
+        systemctl poweroff
+        ;;
+    *"Reboot"*)
+        systemctl reboot
+        ;;
+    *"Suspend"*)
+        systemctl suspend
+        ;;
+    *"Lock"*)
+        hyprlock
+        ;;
+    *"Logout"*)
+        hyprctl dispatch exit
+        ;;
+esac

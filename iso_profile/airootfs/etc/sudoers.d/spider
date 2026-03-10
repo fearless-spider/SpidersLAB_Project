@@ -1,0 +1,1 @@
+spider ALL=(ALL:ALL) NOPASSWD: ALL

@@ -1,0 +1,7 @@
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — direnvrc                                          ║
+# ║  Custom hooks for devenv auto-activation with glitch visuals.     ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+# Override the stdlib to add glitch notification on environment load.
+# This runs AFTER direnv loads the .envrc — visual feedback only.

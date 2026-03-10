@@ -1,0 +1,12 @@
+[Unit]
+Description=Spider's LAB — TTY Color Palette
+After=systemd-vconsole-setup.service
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/spider-ttycolors
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target

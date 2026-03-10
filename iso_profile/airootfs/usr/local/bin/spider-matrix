@@ -1,0 +1,194 @@
+#!/bin/bash
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — Matrix Data Stream                                 ║
+# ║  High-speed ASCII art boot animation on TTY1.                      ║
+# ║  Like the opening of 'Hackers' meets The Matrix digital rain.      ║
+# ║  "Hack the Planet." — Zero Cool                                    ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+# Exit cleanly on SIGTERM/SIGINT (sent by spider-launch for seamless transition)
+trap 'tput cnorm; clear; exit 0' SIGTERM SIGINT EXIT
+
+# Hide cursor
+tput civis 2>/dev/null
+
+# ── Color codes ───────────────────────────────────────────────────────
+R='\e[31m'      # Spider-Red
+C='\e[36m'      # Cyan
+G='\e[32m'      # Green (CRT)
+DG='\e[2;32m'   # Dim green
+DR='\e[2;31m'   # Dim red
+M='\e[35m'      # Magenta
+W='\e[37m'      # White
+D='\e[2m'       # Dim
+B='\e[1m'       # Bold
+N='\e[0m'       # Reset
+
+COLS=$(tput cols 2>/dev/null || echo 80)
+ROWS=$(tput lines 2>/dev/null || echo 24)
+
+clear
+
+# ══════════════════════════════════════════════════════════════════════
+#  PHASE 1: BIOS POST — fast hex dump (1.5 seconds)
+# ══════════════════════════════════════════════════════════════════════
+for i in $(seq 1 12); do
+    ADDR=$(printf "0x%08X" $((RANDOM * RANDOM)))
+    HEX=""
+    for j in $(seq 1 16); do
+        HEX+=$(printf "%02X " $((RANDOM % 256)))
+    done
+    printf "${DG}[${ADDR}]  ${HEX}${N}\n"
+    sleep 0.04
+done
+
+sleep 0.3
+
+# ══════════════════════════════════════════════════════════════════════
+#  PHASE 2: SPIDER'S LAB BANNER
+# ══════════════════════════════════════════════════════════════════════
+echo ""
+echo -e "${R}${B}"
+cat << 'BANNER'
+   ███████╗██████╗ ██╗██████╗ ███████╗██████╗ ██╗███████╗
+   ██╔════╝██╔══██╗██║██╔══██╗██╔════╝██╔══██╗╚═╝██╔════╝
+   ███████╗██████╔╝██║██║  ██║█████╗  ██████╔╝   ███████╗
+   ╚════██║██╔═══╝ ██║██║  ██║██╔══╝  ██╔══██╗   ╚════██║
+   ███████║██║     ██║██████╔╝███████╗██║  ██║   ███████║
+   ╚══════╝╚═╝     ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝   ╚══════╝
+BANNER
+echo -e "${N}"
+echo -e "${C}              ╔═══════════════════════════╗${N}"
+echo -e "${C}              ║${W}${B}   L  A  B   v1.0        ${C}║${N}"
+echo -e "${C}              ╚═══════════════════════════╝${N}"
+echo ""
+
+sleep 0.8
+
+# ══════════════════════════════════════════════════════════════════════
+#  PHASE 3: SYSTEM INIT — fake boot messages
+# ══════════════════════════════════════════════════════════════════════
+boot_msg() {
+    local status=$1
+    local msg=$2
+    local delay=$3
+
+    if [ "$status" = "OK" ]; then
+        printf "  ${DG}[${N}${C} OK ${DG}]${N}  ${G}${msg}${N}\n"
+    elif [ "$status" = "LOAD" ]; then
+        printf "  ${DG}[${N}${M}LOAD${DG}]${N}  ${DG}${msg}${N}\n"
+    elif [ "$status" = "WARN" ]; then
+        printf "  ${DG}[${N}${R}${B}!!!!${DG}]${N}  ${R}${msg}${N}\n"
+    elif [ "$status" = "EXEC" ]; then
+        printf "  ${DG}[${N}${C}EXEC${DG}]${N}  ${W}${msg}${N}\n"
+    fi
+    sleep "${delay:-0.08}"
+}
+
+boot_msg "OK"   "Kernel: linux $(uname -r)" 0.06
+boot_msg "OK"   "systemd: PID 1 initialized" 0.06
+boot_msg "LOAD" "Loading kernel modules..." 0.1
+boot_msg "OK"   "Module: nvidia_drm (NVIDIA RTX 3060)" 0.08
+boot_msg "OK"   "Module: nvidia_uvm (Unified Virtual Memory)" 0.06
+boot_msg "OK"   "Module: i2c_nvidia_gpu" 0.04
+boot_msg "OK"   "DRM: nvidia-drm loaded, driver version 570.x" 0.08
+boot_msg "OK"   "Filesystem: root mounted (ext4)" 0.06
+boot_msg "OK"   "Filesystem: /boot mounted (vfat)" 0.04
+boot_msg "OK"   "Network: systemd-networkd started" 0.06
+boot_msg "OK"   "Audio: PipeWire 1.x (rt priority enabled)" 0.06
+boot_msg "OK"   "Audio: WirePlumber session manager" 0.04
+boot_msg "LOAD" "Initializing Spider's LAB subsystems..." 0.12
+
+sleep 0.3
+
+# ══════════════════════════════════════════════════════════════════════
+#  PHASE 4: SECURITY SCAN — hacker vibes
+# ══════════════════════════════════════════════════════════════════════
+echo ""
+echo -e "${R}${B}  ── SECURITY SUBSYSTEM ──${N}"
+echo ""
+
+boot_msg "EXEC" "Scanning attack surface..." 0.15
+boot_msg "OK"   "Firewall: nftables rules loaded" 0.06
+boot_msg "OK"   "SSH: ed25519 host keys generated" 0.06
+boot_msg "OK"   "Entropy: $(cat /proc/sys/kernel/random/entropy_avail 2>/dev/null || echo 4096) bits available" 0.08
+boot_msg "OK"   "ASLR: enabled (randomize_va_space=2)" 0.06
+
+# Show real network interfaces
+for iface in $(ls /sys/class/net/ 2>/dev/null | grep -v lo | head -3); do
+    MAC=$(cat /sys/class/net/$iface/address 2>/dev/null || echo "??:??:??:??:??:??")
+    boot_msg "OK" "Interface: ${iface} [${MAC}]" 0.06
+done
+
+boot_msg "OK"   "Metasploit framework: standby" 0.06
+boot_msg "OK"   "Wireshark: capture ready" 0.04
+boot_msg "WARN" "All systems armed. Proceed with caution." 0.2
+
+sleep 0.3
+
+# ══════════════════════════════════════════════════════════════════════
+#  PHASE 5: GPU REPORT — RTX 3060 stats
+# ══════════════════════════════════════════════════════════════════════
+echo ""
+echo -e "${C}${B}  ── GPU REPORT ──${N}"
+echo ""
+
+if command -v nvidia-smi &>/dev/null; then
+    GPU_NAME=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null || echo "NVIDIA RTX 3060")
+    GPU_VRAM=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader 2>/dev/null || echo "12288 MiB")
+    GPU_DRIVER=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null || echo "570.x")
+    boot_msg "OK" "GPU: ${GPU_NAME}" 0.08
+    boot_msg "OK" "VRAM: ${GPU_VRAM}" 0.06
+    boot_msg "OK" "Driver: ${GPU_DRIVER}" 0.06
+else
+    boot_msg "OK" "GPU: Software Renderer (VM mode)" 0.08
+fi
+
+boot_msg "OK"   "Wayland compositor: Hyprland" 0.06
+boot_msg "OK"   "Display server: wayland" 0.04
+
+sleep 0.3
+
+# ══════════════════════════════════════════════════════════════════════
+#  PHASE 6: DATA RAIN — rapid random hex/binary stream
+# ══════════════════════════════════════════════════════════════════════
+echo ""
+echo -e "${R}${B}  ── NEURAL HANDSHAKE ──${N}"
+echo ""
+
+CHARS="0123456789ABCDEFabcdef.:/@#$%&!<>{}[]|\\~"
+
+for i in $(seq 1 8); do
+    LINE=""
+    LEN=$((COLS - 4))
+    for j in $(seq 1 $LEN); do
+        CHAR="${CHARS:$((RANDOM % ${#CHARS})):1}"
+        # Randomly colorize: mostly green, some red, some cyan
+        ROLL=$((RANDOM % 10))
+        if [ $ROLL -lt 6 ]; then
+            LINE+="${DG}${CHAR}"
+        elif [ $ROLL -lt 8 ]; then
+            LINE+="${DR}${CHAR}"
+        else
+            LINE+="${C}${CHAR}"
+        fi
+    done
+    echo -e "  ${LINE}${N}"
+    sleep 0.03
+done
+
+sleep 0.2
+
+# ══════════════════════════════════════════════════════════════════════
+#  PHASE 7: FINAL — launch message
+# ══════════════════════════════════════════════════════════════════════
+echo ""
+echo -e "${R}  ┌─────────────────────────────────────────────┐${N}"
+echo -e "${R}  │${C}${B}  SPIDER'S LAB — SYSTEM ONLINE               ${R}│${N}"
+echo -e "${R}  │${G}  Launching Hyprland compositor...            ${R}│${N}"
+echo -e "${R}  └─────────────────────────────────────────────┘${N}"
+echo ""
+
+sleep 0.5
+
+# Animation done — spider-launch will take over

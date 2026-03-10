@@ -1,0 +1,475 @@
+#!/bin/bash
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — spider-summon                                     ║
+# ║                                                                    ║
+# ║  "God gave you two hands, and you use them both for typing.        ║
+# ║   God's a kid with an ant farm." — Eugene "The Plague" Belford     ║
+# ║                                                                    ║
+# ║  Summons a devenv.sh environment in the current directory.         ║
+# ║  Select your Spider Modules. The web spins itself.                 ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+set -euo pipefail
+
+# ── Colors ──────────────────────────────────────────────────────────
+RED='\e[31m'
+CYAN='\e[36m'
+GREEN='\e[32m'
+MAGENTA='\e[35m'
+DIM='\e[2m'
+BOLD='\e[1m'
+RESET='\e[0m'
+
+# ── Helpers ─────────────────────────────────────────────────────────
+ok()   { echo -e "  ${DIM}[${RESET}${CYAN} OK ${DIM}]${RESET}  ${GREEN}$1${RESET}"; }
+info() { echo -e "  ${DIM}[${RESET}${RED}....${DIM}]${RESET}  $1"; }
+fail() { echo -e "  ${DIM}[${RESET}${RED}${BOLD}FAIL${DIM}]${RESET}  ${RED}$1${RESET}"; exit 1; }
+
+# ── Banner ──────────────────────────────────────────────────────────
+banner() {
+    echo ""
+    echo -e "${RED}${BOLD}"
+    echo "   ███████╗██████╗ ██╗██████╗ ███████╗██████╗     ███████╗██╗   ██╗███╗   ███╗███╗   ███╗ ██████╗ ███╗   ██╗"
+    echo "   ██╔════╝██╔══██╗██║██╔══██╗██╔════╝██╔══██╗    ██╔════╝██║   ██║████╗ ████║████╗ ████║██╔═══██╗████╗  ██║"
+    echo "   ███████╗██████╔╝██║██║  ██║█████╗  ██████╔╝    ███████╗██║   ██║██╔████╔██║██╔████╔██║██║   ██║██╔██╗ ██║"
+    echo "   ╚════██║██╔═══╝ ██║██║  ██║██╔══╝  ██╔══██╗    ╚════██║██║   ██║██║╚██╔╝██║██║╚██╔╝██║██║   ██║██║╚██╗██║"
+    echo "   ███████║██║     ██║██████╔╝███████╗██║  ██║    ███████║╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║╚██████╔╝██║ ╚████║"
+    echo "   ╚══════╝╚═╝     ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝    ╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═══╝"
+    echo -e "${RESET}"
+    echo -e "${CYAN}   Devenv Environment Provisioner${RESET}"
+    echo -e "${RED}   ─────────────────────────────────────────────────────────${RESET}"
+    echo ""
+}
+
+# ── Preflight checks ───────────────────────────────────────────────
+preflight() {
+    if ! command -v devenv &>/dev/null; then
+        fail "devenv not found. Install: https://devenv.sh/getting-started/"
+    fi
+
+    if ! command -v nix &>/dev/null; then
+        fail "nix not found. Install: https://nixos.org/download/"
+    fi
+
+    if ! command -v direnv &>/dev/null; then
+        echo -e "  ${DIM}[${RESET}${MAGENTA}WARN${DIM}]${RESET}  direnv not found — auto-activation disabled"
+        echo -e "         Install with: ${CYAN}nix profile install nixpkgs#direnv${RESET}"
+        echo ""
+    fi
+}
+
+# ── Module definitions ─────────────────────────────────────────────
+# Each module: KEY="description|nix_packages|devenv_languages_block|extra_services"
+declare -A MODULES
+MODULES=(
+    [python]="Python 3.x + pip + venv|pkgs.python3 pkgs.python3Packages.pip pkgs.python3Packages.virtualenv pkgs.ruff|languages.python.enable = true;\n    languages.python.venv.enable = true;|"
+    [go]="Go + gopls + golangci-lint|pkgs.go pkgs.gopls pkgs.golangci-lint|languages.go.enable = true;|"
+    [rust]="Rust + cargo + clippy + rust-analyzer|pkgs.rustup|languages.rust.enable = true;\n    languages.rust.channel = \"stable\";|"
+    [node]="Node.js 22 + npm + pnpm|pkgs.nodejs_22 pkgs.pnpm|languages.javascript.enable = true;\n    languages.typescript.enable = true;|"
+    [cpp]="C/C++ + clang + cmake + gdb|pkgs.clang pkgs.cmake pkgs.gnumake pkgs.gdb pkgs.clang-tools|languages.cplusplus.enable = true;|"
+    [java]="Java 21 + Gradle + Maven|pkgs.jdk21 pkgs.gradle pkgs.maven|languages.java.enable = true;\n    languages.java.jdk.package = pkgs.jdk21;|"
+    [postgres]="PostgreSQL 16 service|pkgs.postgresql_16|services.postgres.enable = true;\n    services.postgres.package = pkgs.postgresql_16;|services"
+    [redis]="Redis service|pkgs.redis|services.redis.enable = true;|services"
+    [docker]="Docker compose tools|pkgs.docker-compose pkgs.lazydocker||"
+    [security]="Security toolkit (nmap, gobuster, etc.)|pkgs.nmap pkgs.gobuster pkgs.ffuf pkgs.sqlmap pkgs.httpie||"
+)
+
+MODULE_ORDER=(python go rust node cpp java postgres redis docker security)
+
+# ── Module selector ────────────────────────────────────────────────
+select_modules() {
+    echo -e "  ${CYAN}${BOLD}Select Spider Modules to weave into the environment:${RESET}"
+    echo ""
+
+    local i=1
+    for key in "${MODULE_ORDER[@]}"; do
+        local desc="${MODULES[$key]%%|*}"
+        echo -e "    ${RED}${BOLD}[$i]${RESET}  ${desc} ${DIM}($key)${RESET}"
+        ((i++))
+    done
+    echo ""
+    echo -e "    ${DIM}Enter numbers separated by spaces (e.g., 1 3 5)${RESET}"
+    echo -e "    ${DIM}or 'all' to enable everything.${RESET}"
+    echo ""
+
+    read -rp "$(echo -e "  ${CYAN}SPIDER > ${RESET}")" selection
+
+    SELECTED=()
+    if [[ "$selection" == "all" ]]; then
+        SELECTED=("${MODULE_ORDER[@]}")
+    else
+        for num in $selection; do
+            if [[ "$num" =~ ^[0-9]+$ ]] && (( num >= 1 && num <= ${#MODULE_ORDER[@]} )); then
+                SELECTED+=("${MODULE_ORDER[$((num-1))]}")
+            fi
+        done
+    fi
+
+    if [[ ${#SELECTED[@]} -eq 0 ]]; then
+        fail "No modules selected. The web remains empty."
+    fi
+
+    echo ""
+    echo -e "  ${GREEN}Selected modules:${RESET}"
+    for mod in "${SELECTED[@]}"; do
+        local desc="${MODULES[$mod]%%|*}"
+        echo -e "    ${CYAN}→${RESET} $desc"
+    done
+    echo ""
+}
+
+# ── Project name ───────────────────────────────────────────────────
+get_project_name() {
+    local default_name
+    default_name=$(basename "$PWD")
+    read -rp "$(echo -e "  ${CYAN}Project name${RESET} ${DIM}[$default_name]${RESET}${CYAN}: ${RESET}")" PROJECT_NAME
+    PROJECT_NAME="${PROJECT_NAME:-$default_name}"
+}
+
+# ── Generate devenv.nix ───────────────────────────────────────────
+generate_devenv_nix() {
+    # Build packages list
+    local packages=""
+    for mod in "${SELECTED[@]}"; do
+        IFS='|' read -r _ pkgs _ _ <<< "${MODULES[$mod]}"
+        for pkg in $pkgs; do
+            packages+="      $pkg\n"
+        done
+    done
+
+    # Build languages block (skip service-only modules)
+    local languages=""
+    for mod in "${SELECTED[@]}"; do
+        IFS='|' read -r _ _ lang_block svc_marker <<< "${MODULES[$mod]}"
+        if [[ -n "$lang_block" && "$svc_marker" != "services" ]]; then
+            languages+="    $lang_block\n"
+        fi
+    done
+
+    # Build services block
+    local services=""
+    for mod in "${SELECTED[@]}"; do
+        IFS='|' read -r _ _ lang_block svc_marker <<< "${MODULES[$mod]}"
+        if [[ "$svc_marker" == "services" && -n "$lang_block" ]]; then
+            services+="    $lang_block\n"
+        fi
+    done
+
+    cat > devenv.nix << NIXEOF
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — devenv.nix                                        ║
+# ║                                                                    ║
+# ║  Project: $PROJECT_NAME
+# ║  Summoned by spider-summon. Hack the planet.                       ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+{ pkgs, lib, config, ... }:
+
+{
+    # ── Project metadata ────────────────────────────────────────────
+    name = "$PROJECT_NAME";
+
+    # ── System packages ─────────────────────────────────────────────
+    packages = [
+      pkgs.git
+      pkgs.curl
+      pkgs.jq
+      pkgs.ripgrep
+      pkgs.fd
+$(echo -e "$packages")    ];
+
+    # ── Environment variables ───────────────────────────────────────
+    env = {
+      SPIDER_PROJECT = "$PROJECT_NAME";
+      SPIDER_ENV = "active";
+    };
+
+    # ── Languages ───────────────────────────────────────────────────
+$(echo -e "$languages")
+    # ── Services ────────────────────────────────────────────────────
+$(echo -e "$services")
+    # ── Scripts — the spider's toolkit ──────────────────────────────
+    scripts.hello.exec = ''
+      echo ""
+      echo -e "\e[31m\e[1m"
+      echo "   ███████╗██████╗ ██╗██████╗ ███████╗██████╗ ██╗███████╗"
+      echo "   ██╔════╝██╔══██╗██║██╔══██╗██╔════╝██╔══██╗╚═╝██╔════╝"
+      echo "   ███████╗██████╔╝██║██║  ██║█████╗  ██████╔╝   ███████╗"
+      echo "   ╚════██║██╔═══╝ ██║██║  ██║██╔══╝  ██╔══██╗   ╚════██║"
+      echo "   ███████║██║     ██║██████╔╝███████╗██║  ██║   ███████║"
+      echo "   ╚══════╝╚═╝     ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝   ╚══════╝"
+      echo -e "\e[0m"
+      echo -e "\e[36m   Environment Initialized: \e[1m$PROJECT_NAME\e[0m"
+      echo -e "\e[31m   ─────────────────────────────────────────────\e[0m"
+      echo ""
+    '';
+
+    scripts.spider-status.exec = ''
+      echo ""
+      echo -e "\e[36m\e[1m  ── SPIDER'S LAB — Environment Status ──\e[0m"
+      echo ""
+      echo -e "  \e[31mProject:\e[0m  \$SPIDER_PROJECT"
+      echo -e "  \e[31mShell:\e[0m    \$SHELL"
+      echo -e "  \e[31mNix:\e[0m      \$(nix --version 2>/dev/null || echo 'N/A')"
+      echo -e "  \e[31mDevenv:\e[0m   \$(devenv version 2>/dev/null || echo 'N/A')"
+      echo ""
+      echo -e "  \e[36mAvailable scripts:\e[0m"
+      echo -e "    hello          — Show the banner"
+      echo -e "    spider-status  — This status report"
+      echo -e "    spider-scan    — Run security pre-commit checks"
+      echo ""
+    '';
+
+    scripts.spider-scan.exec = ''
+      echo -e "\e[31m\e[1m  ── SPIDER'S LAB — Security Scan ──\e[0m"
+      echo ""
+
+      ISSUES=0
+
+      # Check for leaked secrets
+      echo -e "  \e[36m[SCAN]\e[0m Checking for secrets..."
+      if grep -rn --include="*.py" --include="*.js" --include="*.ts" --include="*.go" --include="*.rs" --include="*.env" \
+        -iE "(password|secret|api_key|token|private_key)\s*=\s*[\"'][^\"']{8,}" . 2>/dev/null | grep -v node_modules | grep -v .git | head -10; then
+        echo -e "  \e[31m[!] Potential secrets found above\e[0m"
+        ISSUES=\$((ISSUES + 1))
+      else
+        echo -e "  \e[32m[OK]\e[0m No hardcoded secrets detected"
+      fi
+
+      # Check for TODO/FIXME/HACK markers
+      echo -e "  \e[36m[SCAN]\e[0m Checking for unresolved markers..."
+      MARKERS=\$(grep -rn --include="*.py" --include="*.js" --include="*.ts" --include="*.go" --include="*.rs" \
+        -E "(TODO|FIXME|HACK|XXX|BUG):" . 2>/dev/null | grep -v node_modules | grep -v .git | wc -l)
+      if [ "\$MARKERS" -gt 0 ]; then
+        echo -e "  \e[35m[!] \$MARKERS unresolved markers (TODO/FIXME/HACK)\e[0m"
+      else
+        echo -e "  \e[32m[OK]\e[0m No unresolved markers"
+      fi
+
+      # Check file permissions
+      echo -e "  \e[36m[SCAN]\e[0m Checking for world-writable files..."
+      WRITABLE=\$(find . -maxdepth 3 -perm -002 -not -path "./.git/*" -not -path "./.devenv/*" -not -path "./node_modules/*" 2>/dev/null | wc -l)
+      if [ "\$WRITABLE" -gt 0 ]; then
+        echo -e "  \e[31m[!] \$WRITABLE world-writable files found\e[0m"
+        ISSUES=\$((ISSUES + 1))
+      else
+        echo -e "  \e[32m[OK]\e[0m No world-writable files"
+      fi
+
+      echo ""
+      if [ "\$ISSUES" -gt 0 ]; then
+        echo -e "  \e[31m\e[1m  Result: \$ISSUES issue(s) require attention\e[0m"
+      else
+        echo -e "  \e[32m\e[1m  Result: All clear. The web is secure.\e[0m"
+      fi
+      echo ""
+    '';
+
+    # ── Starship prompt — active only inside devenv ─────────────────
+    starship.enable = true;
+    starship.config.enable = true;
+    starship.config.path = config.env.DEVENV_ROOT + "/starship-spider.toml";
+
+    # ── Pre-commit hooks ────────────────────────────────────────────
+    pre-commit.hooks = {
+      # Security: detect secrets before they hit the repo
+      detect-secrets = {
+        enable = true;
+        name = "spider-secrets-guard";
+        entry = "spider-scan";
+        language = "system";
+        pass_filenames = false;
+        stages = [ "pre-commit" ];
+      };
+
+      # Formatting: trim trailing whitespace
+      trailing-whitespace = {
+        enable = true;
+        name = "trim-whitespace";
+      };
+
+      # Formatting: ensure files end with newline
+      end-of-file-fixer = {
+        enable = true;
+        name = "end-of-file-fixer";
+      };
+    };
+
+    # ── Shell hook — runs when the environment activates ────────────
+    enterShell = ''
+      hello
+    '';
+}
+NIXEOF
+}
+
+# ── Generate starship config ──────────────────────────────────────
+generate_starship() {
+    cat > starship-spider.toml << 'STAREOF'
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — Starship Prompt (devenv-local)                    ║
+# ║  This prompt only activates inside the devenv shell.              ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+format = """
+$env_var\
+$directory\
+$git_branch\
+$git_status\
+$python\
+$golang\
+$rust\
+$nodejs\
+$java\
+$c\
+$cmd_duration\
+$line_break\
+$character"""
+
+[env_var.SPIDER_PROJECT]
+variable = "SPIDER_PROJECT"
+format = "[░▒▓ SPIDER ](bold red)[$env_value](bold cyan) "
+disabled = false
+
+[directory]
+format = "[in ](dimmed white)[$path](bold red) "
+truncation_length = 3
+truncation_symbol = "…/"
+
+[git_branch]
+format = "[on ](dimmed white)[$symbol$branch](bold magenta) "
+symbol = " "
+
+[git_status]
+format = '([\[$all_status$ahead_behind\]](bold red) )'
+ahead = "⇡${count}"
+behind = "⇣${count}"
+modified = "!"
+staged = "+"
+untracked = "?"
+
+[python]
+format = '[${symbol}${version}](bold cyan) '
+symbol = " "
+
+[golang]
+format = '[${symbol}${version}](bold cyan) '
+symbol = " "
+
+[rust]
+format = '[${symbol}${version}](bold red) '
+symbol = " "
+
+[nodejs]
+format = '[${symbol}${version}](bold green) '
+symbol = " "
+
+[java]
+format = '[${symbol}${version}](bold red) '
+symbol = " "
+
+[c]
+format = '[${symbol}${version}](bold cyan) '
+symbol = " "
+
+[cmd_duration]
+format = "[took ](dimmed white)[$duration](bold yellow) "
+min_time = 2000
+
+[character]
+success_symbol = "[▸](bold cyan)"
+error_symbol = "[▸](bold red)"
+STAREOF
+}
+
+# ── Generate .envrc for direnv ────────────────────────────────────
+generate_envrc() {
+    if ! command -v direnv &>/dev/null; then
+        return
+    fi
+
+    cat > .envrc << 'ENVRCEOF'
+# Spider's LAB — direnv auto-activation
+# This file was generated by spider-summon.
+if has devenv; then
+  eval "$(devenv print-dev-env)"
+fi
+ENVRCEOF
+    ok ".envrc created (direnv auto-activation)"
+}
+
+# ── Initialize devenv ─────────────────────────────────────────────
+init_devenv() {
+    if [[ -f "devenv.nix" ]]; then
+        echo ""
+        read -rp "$(echo -e "  ${RED}${BOLD}devenv.nix already exists.${RESET} Overwrite? [y/N]: ")" confirm
+        if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+            fail "Aborted. Existing web preserved."
+        fi
+    fi
+
+    # Initialize devenv if not already done
+    if [[ ! -f "devenv.yaml" ]]; then
+        info "Initializing devenv..."
+        devenv init 2>/dev/null || true
+        ok "devenv initialized"
+    fi
+}
+
+# ── Git ignore ────────────────────────────────────────────────────
+update_gitignore() {
+    local entries=(".devenv" ".devenv.flake.nix" "devenv.local.nix" ".direnv")
+    for entry in "${entries[@]}"; do
+        if [[ -f .gitignore ]]; then
+            grep -qxF "$entry" .gitignore 2>/dev/null || echo "$entry" >> .gitignore
+        fi
+    done
+    if [[ -f .gitignore ]]; then
+        ok ".gitignore updated"
+    fi
+}
+
+# ══════════════════════════════════════════════════════════════════
+#  MAIN — Spin the web
+# ══════════════════════════════════════════════════════════════════
+main() {
+    banner
+    preflight
+    get_project_name
+    echo ""
+    select_modules
+
+    info "Summoning the environment..."
+    echo ""
+
+    init_devenv
+    generate_devenv_nix
+    ok "devenv.nix generated"
+
+    generate_starship
+    ok "starship-spider.toml generated"
+
+    generate_envrc
+    update_gitignore
+
+    echo ""
+    echo -e "${RED}  ─────────────────────────────────────────────────────────${RESET}"
+    echo ""
+    echo -e "  ${CYAN}${BOLD}The web is spun.${RESET}"
+    echo ""
+    echo -e "  ${GREEN}Generated:${RESET}"
+    echo -e "    devenv.nix          → Environment definition"
+    echo -e "    starship-spider.toml → Spider prompt (devenv-local)"
+    [[ -f .envrc ]] && echo -e "    .envrc              → direnv auto-activation"
+    echo ""
+    echo -e "  ${CYAN}Next steps:${RESET}"
+    echo -e "    ${BOLD}devenv shell${RESET}          → Enter the environment"
+    echo -e "    ${BOLD}direnv allow${RESET}          → Enable auto-activation"
+    echo -e "    ${BOLD}hello${RESET}                 → Show the banner"
+    echo -e "    ${BOLD}spider-status${RESET}         → Environment status"
+    echo -e "    ${BOLD}spider-scan${RESET}           → Security scan"
+    echo ""
+    echo -e "  ${RED}${BOLD}\"Hack the planet.\" — Zero Cool${RESET}"
+    echo ""
+}
+
+main "$@"

@@ -1,0 +1,163 @@
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — GRUB THEME                                        ║
+# ║  CRT Monitor Aesthetic. 1995 Terminal. Zero Cool approved.        ║
+# ║  "Hack the Planet."                                                ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+# ── Desktop ───────────────────────────────────────────────────────────
+desktop-image: "background.png"
+desktop-color: "#000000"
+
+# ── Title Banner ──────────────────────────────────────────────────────
+# Top-left terminal prompt
++ label {
+    left = 5%
+    top = 3%
+    width = 90%
+    height = 30
+    text = "root@spiderslab:~# boot --target=kernel"
+    color = "#FF0000"
+    align = "left"
+}
+
+# Spider's LAB branding
++ label {
+    left = 0%
+    top = 6%
+    width = 100%
+    height = 55
+    text = ">>> SPIDER'S LAB <<<"
+    color = "#FF0000"
+    align = "center"
+}
+
+# Subtitle
++ label {
+    left = 0%
+    top = 11%
+    width = 100%
+    height = 25
+    text = "[ CYBERPUNK HACKER WORKSTATION // KERNEL SELECT ]"
+    color = "#00C800"
+    align = "center"
+}
+
+# Divider line label
++ label {
+    left = 5%
+    top = 14%
+    width = 90%
+    height = 20
+    text = "────────────────────────────────────────────────────────────────────"
+    color = "#500000"
+    align = "center"
+}
+
+
+# ── Boot Menu ─────────────────────────────────────────────────────────
++ boot_menu {
+    left = 15%
+    top = 20%
+    width = 70%
+    height = 50%
+
+    # Menu item styling
+    item_color = "#00C800"
+    selected_item_color = "#FF0000"
+    item_height = 36
+    item_padding = 8
+    item_spacing = 4
+    icon_width = 32
+    icon_height = 32
+
+    # 9-slice styled box
+    menu_pixmap_style = "terminal_box_*.png"
+
+    # Selection highlight
+    selected_item_pixmap_style = "select_*.png"
+
+    # Scrollbar
+    scrollbar = true
+    scrollbar_width = 8
+    scrollbar_thumb = "slider_c.png"
+    scrollbar_frame = "scrollbar_c.png"
+}
+
+
+# ── Progress Bar — "Hacking in progress..." ──────────────────────────
++ progress_bar {
+    id = "__timeout__"
+    left = 25%
+    top = 78%
+    width = 50%
+    height = 20
+
+    # Bar styling
+    bar_style = "progress_bar_*.png"
+    highlight_style = "progress_highlight_*.png"
+
+    # Filled = cyan, empty = dark red
+    fg_color = "#00FFFF"
+    bg_color = "#280000"
+    border_color = "#FF0000"
+
+    text_color = "#00FFFF"
+    text = "@TIMEOUT_NOTIFICATION_LONG@"
+}
+
+# "Hacking in progress..." label above progress bar
++ label {
+    left = 0%
+    top = 74%
+    width = 100%
+    height = 25
+    text = ":: Hacking in progress... stand by for kernel injection ::"
+    color = "#00FFFF"
+    align = "center"
+}
+
+
+# ── Bottom info ───────────────────────────────────────────────────────
+# Divider
++ label {
+    left = 5%
+    top = 84%
+    width = 90%
+    height = 20
+    text = "────────────────────────────────────────────────────────────────────"
+    color = "#500000"
+    align = "center"
+}
+
+# Navigation help
++ label {
+    left = 0%
+    top = 87%
+    width = 100%
+    height = 22
+    text = "[↑/↓] Navigate    [Enter] Boot    [e] Edit    [c] GRUB Shell"
+    color = "#005000"
+    align = "center"
+}
+
+# System info line
++ label {
+    left = 0%
+    top = 91%
+    width = 100%
+    height = 20
+    text = "NVIDIA RTX 3060 // Wayland // Hyprland // CachyOS Kernel"
+    color = "#500000"
+    align = "center"
+}
+
+# Copyright
++ label {
+    left = 0%
+    top = 95%
+    width = 100%
+    height = 20
+    text = "Spider's LAB v1.0 — \"There is no right and wrong. There's only fun and boring.\""
+    color = "#300000"
+    align = "center"
+}

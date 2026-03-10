@@ -1,0 +1,173 @@
+#!/bin/bash
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — Ghost Mode                                        ║
+# ║                                                                    ║
+# ║  "Hack the planet!" — but leave no trace.                         ║
+# ║                                                                    ║
+# ║  Wipes digital footprint, shreds evidence, goes dark.             ║
+# ║  The spider vanishes from the web.                                ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+RED='\e[31m'
+CYAN='\e[36m'
+DIM='\e[2m'
+BOLD='\e[1m'
+RESET='\e[0m'
+
+# ── Confirmation ──────────────────────────────────────────────────────
+echo ""
+echo -e "${RED}${BOLD}"
+echo "   ██████╗ ██╗  ██╗ ██████╗ ███████╗████████╗"
+echo "  ██╔════╝ ██║  ██║██╔═══██╗██╔════╝╚══██╔══╝"
+echo "  ██║  ███╗███████║██║   ██║███████╗   ██║   "
+echo "  ██║   ██║██╔══██║██║   ██║╚════██║   ██║   "
+echo "  ╚██████╔╝██║  ██║╚██████╔╝███████║   ██║   "
+echo "   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝   "
+echo -e "${RESET}"
+echo -e "${CYAN}${BOLD}          ── GHOST MODE ──${RESET}"
+echo ""
+echo -e "  ${DIM}This will:${RESET}"
+echo -e "    ${RED}▸${RESET} Wipe clipboard history"
+echo -e "    ${RED}▸${RESET} Clear shell history"
+echo -e "    ${RED}▸${RESET} Shred recent file lists"
+echo -e "    ${RED}▸${RESET} Clear browser session data"
+echo -e "    ${RED}▸${RESET} Flush DNS & network cache"
+echo -e "    ${RED}▸${RESET} Power off the machine"
+echo ""
+
+# Interactive confirmation unless --force flag
+if [[ "$1" != "--force" ]]; then
+    echo -ne "  ${RED}${BOLD}Vanish from the web? [y/N]${RESET} "
+    read -r CONFIRM
+    if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then
+        echo -e "\n  ${CYAN}Ghost mode aborted. You're still visible.${RESET}\n"
+        exit 0
+    fi
+fi
+
+echo ""
+echo -e "  ${RED}${BOLD}── Initiating Ghost Protocol ──${RESET}"
+echo ""
+
+# ── Phase 1: Clipboard ───────────────────────────────────────────────
+echo -ne "  ${DIM}[${RESET}${CYAN}WIPE${DIM}]${RESET}  Clipboard history... "
+if command -v cliphist &>/dev/null; then
+    cliphist wipe 2>/dev/null
+fi
+if command -v wl-copy &>/dev/null; then
+    echo -n "" | wl-copy 2>/dev/null
+    echo -n "" | wl-copy -p 2>/dev/null
+fi
+echo -e "${CYAN}done${RESET}"
+
+# ── Phase 2: Shell History ────────────────────────────────────────────
+echo -ne "  ${DIM}[${RESET}${CYAN}WIPE${DIM}]${RESET}  Shell history... "
+# Zsh history
+if [[ -f "$HOME/.zsh_history" ]]; then
+    shred -u "$HOME/.zsh_history" 2>/dev/null || rm -f "$HOME/.zsh_history"
+fi
+# Bash history (just in case)
+if [[ -f "$HOME/.bash_history" ]]; then
+    shred -u "$HOME/.bash_history" 2>/dev/null || rm -f "$HOME/.bash_history"
+fi
+# Python history
+if [[ -f "$HOME/.python_history" ]]; then
+    shred -u "$HOME/.python_history" 2>/dev/null || rm -f "$HOME/.python_history"
+fi
+# Node REPL history
+if [[ -f "$HOME/.node_repl_history" ]]; then
+    shred -u "$HOME/.node_repl_history" 2>/dev/null || rm -f "$HOME/.node_repl_history"
+fi
+echo -e "${CYAN}done${RESET}"
+
+# ── Phase 3: Recent Files ────────────────────────────────────────────
+echo -ne "  ${DIM}[${RESET}${CYAN}WIPE${DIM}]${RESET}  Recent file lists... "
+# GTK recent files
+if [[ -f "$HOME/.local/share/recently-used.xbel" ]]; then
+    shred -u "$HOME/.local/share/recently-used.xbel" 2>/dev/null
+fi
+# Thunar recent
+rm -rf "$HOME/.cache/thunar/" 2>/dev/null
+# General cache cleanup
+rm -rf "$HOME/.cache/thumbnails/" 2>/dev/null
+echo -e "${CYAN}done${RESET}"
+
+# ── Phase 4: Browser Data ────────────────────────────────────────────
+echo -ne "  ${DIM}[${RESET}${CYAN}WIPE${DIM}]${RESET}  Browser sessions... "
+# Firefox session data
+for profile in "$HOME"/.mozilla/firefox/*.default*; do
+    if [[ -d "$profile" ]]; then
+        rm -f "$profile/sessionstore.jsonlz4" 2>/dev/null
+        rm -f "$profile/sessionstore-backups/"* 2>/dev/null
+        rm -rf "$profile/storage/temporary/" 2>/dev/null
+    fi
+done
+echo -e "${CYAN}done${RESET}"
+
+# ── Phase 5: DNS & Network ───────────────────────────────────────────
+echo -ne "  ${DIM}[${RESET}${CYAN}WIPE${DIM}]${RESET}  DNS & network cache... "
+# Flush systemd-resolved cache
+systemctl is-active --quiet systemd-resolved 2>/dev/null && \
+    resolvectl flush-caches 2>/dev/null
+# Clear ARP cache
+ip neigh flush all 2>/dev/null
+echo -e "${CYAN}done${RESET}"
+
+# ── Phase 6: Temp files ──────────────────────────────────────────────
+echo -ne "  ${DIM}[${RESET}${CYAN}WIPE${DIM}]${RESET}  Temp files... "
+rm -rf /tmp/spider-* 2>/dev/null
+rm -rf "$HOME/.cache/wofi-*" 2>/dev/null
+echo -e "${CYAN}done${RESET}"
+
+echo ""
+echo -e "  ${CYAN}${BOLD}All traces cleared.${RESET}"
+echo ""
+
+# ── Phase 7: Ghost Animation ─────────────────────────────────────────
+# Brief matrix-style dissolve effect before shutdown
+COLS=$(tput cols 2>/dev/null || echo 80)
+ROWS=$(tput lines 2>/dev/null || echo 24)
+
+# Hide cursor
+printf '\e[?25l'
+
+# Green rain dissolve — 30 frames (~1.5 seconds)
+CHARS="01アイウエオカキクケコサシスセソタチツテトナニヌネノ"
+CHAR_LEN=${#CHARS}
+
+for frame in $(seq 1 30); do
+    # Print random characters at random positions
+    for _ in $(seq 1 $(( COLS / 4 ))); do
+        ROW=$(( RANDOM % ROWS + 1 ))
+        COL=$(( RANDOM % COLS + 1 ))
+        CHAR="${CHARS:$(( RANDOM % CHAR_LEN )):1}"
+
+        # Fade from bright green to dim to black
+        if [[ $frame -lt 10 ]]; then
+            printf '\e[%d;%dH\e[32m\e[1m%s\e[0m' "$ROW" "$COL" "$CHAR"
+        elif [[ $frame -lt 20 ]]; then
+            printf '\e[%d;%dH\e[2m\e[32m%s\e[0m' "$ROW" "$COL" "$CHAR"
+        else
+            printf '\e[%d;%dH\e[30m%s\e[0m' "$ROW" "$COL" "$CHAR"
+        fi
+    done
+    sleep 0.05
+done
+
+# Final wipe — clear screen to black
+printf '\e[2J\e[H'
+sleep 0.3
+
+# Centered goodbye message
+MSG="T H E   S P I D E R   V A N I S H E S"
+MSG_LEN=${#MSG}
+CENTER_COL=$(( (COLS - MSG_LEN) / 2 ))
+CENTER_ROW=$(( ROWS / 2 ))
+printf '\e[%d;%dH\e[31m\e[1m%s\e[0m' "$CENTER_ROW" "$CENTER_COL" "$MSG"
+sleep 1.5
+
+# Clear and shutdown
+printf '\e[2J\e[H\e[?25h'
+
+# Power off
+systemctl poweroff

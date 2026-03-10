@@ -1,0 +1,8 @@
+root:x:0:root
+wheel:x:998:spider
+video:x:986:spider
+audio:x:995:spider
+input:x:997:spider
+network:x:90:spider
+storage:x:987:spider
+spider:x:1000:

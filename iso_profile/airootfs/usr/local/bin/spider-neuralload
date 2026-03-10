@@ -1,0 +1,85 @@
+#!/bin/bash
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — Neural Load (VRAM Monitor)                        ║
+# ║                                                                    ║
+# ║  Waybar module: Monitors GPU VRAM usage via nvidia-smi.            ║
+# ║  Outputs JSON with class "active" when VRAM > 512MB (model loaded) ║
+# ║  or "idle" when GPU is dormant.                                    ║
+# ║                                                                    ║
+# ║  "Never fear, I is here." — Lord Nikon                            ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+# Threshold in MiB — above this means a model is likely loaded
+VRAM_THRESHOLD=512
+
+# Query nvidia-smi for VRAM used/total (MiB)
+read -r VRAM_USED VRAM_TOTAL < <(
+    nvidia-smi --query-gpu=memory.used,memory.total \
+        --format=csv,noheader,nounits 2>/dev/null \
+    | head -1 \
+    | tr -d ' ' \
+    | tr ',' ' '
+)
+
+# Fallback if nvidia-smi fails
+if [[ -z "$VRAM_USED" || -z "$VRAM_TOTAL" ]]; then
+    echo '{"text":"󰊠 N/A","class":"idle","tooltip":"GPU not detected"}'
+    exit 0
+fi
+
+# Calculate percentage (pure bash integer math)
+if [[ "$VRAM_TOTAL" -gt 0 ]]; then
+    VRAM_PCT=$(( VRAM_USED * 100 / VRAM_TOTAL ))
+else
+    VRAM_PCT=0
+fi
+
+# Format VRAM values for display
+format_vram() {
+    local mib=$1
+    if [[ "$mib" -ge 1024 ]]; then
+        local whole=$(( mib / 1024 ))
+        local frac=$(( (mib % 1024) * 10 / 1024 ))
+        echo "${whole}.${frac}G"
+    else
+        echo "${mib}M"
+    fi
+}
+
+USED_FMT=$(format_vram "$VRAM_USED")
+TOTAL_FMT=$(format_vram "$VRAM_TOTAL")
+
+# Determine class — active when VRAM usage suggests a model is loaded
+if [[ "$VRAM_USED" -gt "$VRAM_THRESHOLD" ]]; then
+    CLASS="active"
+    ICON="󰊠"
+else
+    CLASS="idle"
+    ICON="󰊠"
+fi
+
+# Check if Ollama is running
+OLLAMA_STATUS="offline"
+if pgrep -x ollama &>/dev/null || systemctl is-active --quiet ollama 2>/dev/null; then
+    OLLAMA_STATUS="online"
+fi
+
+# Build tooltip
+TOOLTIP="SPIDER-SENSE Neural Interface\n"
+TOOLTIP+="─────────────────────────\n"
+TOOLTIP+="VRAM: ${USED_FMT} / ${TOTAL_FMT} (${VRAM_PCT}%%)\n"
+TOOLTIP+="Ollama: ${OLLAMA_STATUS}\n"
+
+# Check for loaded model
+if command -v ollama &>/dev/null && [[ "$OLLAMA_STATUS" == "online" ]]; then
+    MODEL=$(ollama ps 2>/dev/null | tail -1 | awk '{print $1}')
+    if [[ -n "$MODEL" && "$MODEL" != "NAME" ]]; then
+        TOOLTIP+="Model: ${MODEL}\n"
+    else
+        TOOLTIP+="Model: none loaded"
+    fi
+fi
+
+# Output Waybar JSON
+printf '{"text":"%s %s","class":"%s","tooltip":"%s"}\n' \
+    "$ICON" "$USED_FMT" "$CLASS" "$TOOLTIP"

@@ -1,0 +1,137 @@
+// ╔══════════════════════════════════════════════════════════════════════╗
+// ║  SPIDER'S LAB — Plymouth Boot Animation                            ║
+// ║  "Hack the Planet." — Zero Cool                                    ║
+// ║                                                                    ║
+// ║  A red spider web pulses with a breathing glow.                    ║
+// ║  A cyan circuit line creeps around the screen edges.               ║
+// ║  Pure black void. Minimal. Intimidating.                           ║
+// ╚══════════════════════════════════════════════════════════════════════╝
+
+// ── SCREEN SETUP ─────────────────────────────────────────────────────
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+center_x = screen_width / 2;
+center_y = screen_height / 2;
+
+// ── LOGO — "SPIDER'S LAB" text image ────────────────────────────────
+logo.image = Image("logo.png");
+logo.sprite = Sprite(logo.image);
+logo.sprite.SetPosition(
+    center_x - logo.image.GetWidth() / 2,
+    center_y - logo.image.GetHeight() / 2 - 40,
+    10
+);
+logo.opacity = 1.0;
+
+// ── SPIDER WEB — breathing pulse overlay ─────────────────────────────
+web.image = Image("web.png");
+web.sprite = Sprite(web.image);
+web.sprite.SetPosition(
+    center_x - web.image.GetWidth() / 2,
+    center_y - web.image.GetHeight() / 2,
+    5
+);
+
+// ── PROGRESS BAR — cyan circuit line ─────────────────────────────────
+// Thin horizontal bar below the logo
+bar_width = Math.Int(screen_width * 0.35);
+bar_height = 2;
+bar_x = center_x - bar_width / 2;
+bar_y = center_y + logo.image.GetHeight() / 2 + 20;
+
+progress_box.image = Image("progress-bar.png");
+progress_box.sprite = Sprite(progress_box.image);
+progress_box.sprite.SetPosition(bar_x, bar_y, 15);
+
+progress_fill.image = Image("progress-fill.png");
+progress_fill.sprite = Sprite(progress_fill.image);
+progress_fill.sprite.SetPosition(bar_x, bar_y, 16);
+
+// ── STATUS TEXT ──────────────────────────────────────────────────────
+status_text.sprite = Sprite();
+status_text.sprite.SetPosition(
+    center_x,
+    bar_y + 25,
+    20
+);
+
+// ── ANIMATION STATE ──────────────────────────────────────────────────
+global.progress = 0;
+global.breath_counter = 0;
+global.fade_in = 1;
+
+// ── BREATHING EFFECT — spider web pulses ─────────────────────────────
+fun breathe() {
+    global.breath_counter += 0.03;
+
+    // Sine wave breathing: oscillates between 0.25 and 0.85
+    breath_val = 0.25 + 0.60 * (0.5 + 0.5 * Math.Sin(global.breath_counter));
+
+    web.sprite.SetOpacity(breath_val);
+
+    // Logo has a subtler pulse
+    logo_breath = 0.75 + 0.25 * (0.5 + 0.5 * Math.Sin(global.breath_counter * 0.7));
+    logo.sprite.SetOpacity(logo_breath);
+}
+
+// ── PROGRESS CALLBACK ────────────────────────────────────────────────
+fun progress_callback(duration, progress) {
+    if (progress >= 0) {
+        global.progress = progress;
+
+        // Scale the fill image to represent progress
+        fill_width = Math.Int(bar_width * progress);
+        if (fill_width > 0) {
+            progress_fill.sprite.SetImage(
+                progress_fill.image.Scale(fill_width, bar_height)
+            );
+        }
+    }
+}
+
+Plymouth.SetBootProgressFunction(progress_callback);
+
+// ── MESSAGE/STATUS CALLBACK ──────────────────────────────────────────
+fun message_callback(text) {
+    if (text == "")
+        return;
+
+    msg_image = Image.Text(text, 0, 1, 1);  // Cyan text
+    status_text.sprite.SetImage(msg_image);
+    status_text.sprite.SetPosition(
+        center_x - msg_image.GetWidth() / 2,
+        bar_y + 25,
+        20
+    );
+}
+
+Plymouth.SetMessageFunction(message_callback);
+
+// ── UPDATE/STATUS CALLBACK ───────────────────────────────────────────
+fun status_callback(status) {
+    // Plymouth passes status strings during boot
+}
+
+Plymouth.SetUpdateStatusFunction(status_callback);
+
+// ── REFRESH — called every frame ─────────────────────────────────────
+fun refresh_callback() {
+    breathe();
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+
+// ── QUIT — seamless fade out ─────────────────────────────────────────
+fun quit_callback() {
+    // Fade everything to black for seamless transition
+    logo.sprite.SetOpacity(0);
+    web.sprite.SetOpacity(0);
+    progress_box.sprite.SetOpacity(0);
+    progress_fill.sprite.SetOpacity(0);
+    status_text.sprite.SetOpacity(0);
+}
+
+Plymouth.SetQuitFunction(quit_callback);

@@ -1,0 +1,49 @@
+#!/bin/bash
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — TTY Color Palette Override                        ║
+# ║  Rewrites the 16-color Linux console palette.                      ║
+# ║  Colors 0-15 remapped to Spider's LAB cyberpunk scheme.           ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+#
+# Linux console uses escape sequences to set palette:
+#   \e]P<index><RRGGBB>
+# Index 0-F (hex) maps to colors 0-15.
+#
+# Spider's LAB Palette:
+#   0  = Pure Black    #000000
+#   1  = Spider-Red    #FF0000
+#   2  = CRT Green     #00C800
+#   3  = Amber Warning #FFAA00
+#   4  = Deep Blue     #0066FF
+#   5  = Neon Magenta  #FF00FF
+#   6  = Electric Cyan #00FFFF
+#   7  = Light Gray    #D4D4D4
+#   8  = Dark Gray     #333333
+#   9  = Bright Red    #FF3333
+#   A  = Bright Green  #33FF99
+#   B  = Bright Yellow #FFCC33
+#   C  = Bright Blue   #3399FF
+#   D  = Bright Magenta#FF66FF
+#   E  = Bright Cyan   #66FFFF
+#   F  = White         #FFFFFF
+
+for tty in /dev/tty{1..6}; do
+    if [ -w "$tty" ]; then
+        printf '\e]P0000000' > "$tty"   # 0: Black
+        printf '\e]P1FF0000' > "$tty"   # 1: Spider-Red
+        printf '\e]P200C800' > "$tty"   # 2: CRT Green
+        printf '\e]P3FFAA00' > "$tty"   # 3: Amber
+        printf '\e]P40066FF' > "$tty"   # 4: Blue
+        printf '\e]P5FF00FF' > "$tty"   # 5: Magenta
+        printf '\e]P600FFFF' > "$tty"   # 6: Cyan
+        printf '\e]P7D4D4D4' > "$tty"   # 7: Light Gray
+        printf '\e]P8333333' > "$tty"   # 8: Dark Gray
+        printf '\e]P9FF3333' > "$tty"   # 9: Bright Red
+        printf '\e]PA33FF99' > "$tty"   # A: Bright Green
+        printf '\e]PBFFCC33' > "$tty"   # B: Bright Yellow
+        printf '\e]PC3399FF' > "$tty"   # C: Bright Blue
+        printf '\e]PDFF66FF' > "$tty"   # D: Bright Magenta
+        printf '\e]PE66FFFF' > "$tty"   # E: Bright Cyan
+        printf '\e]PFFFFFFF' > "$tty"   # F: White
+    fi
+done

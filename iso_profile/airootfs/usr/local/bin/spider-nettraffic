@@ -1,0 +1,84 @@
+#!/bin/bash
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — Network Traffic HUD Module                        ║
+# ║                                                                    ║
+# ║  Auto-detects active interface, measures RX/TX delta over 1s,     ║
+# ║  outputs Waybar-compatible JSON with active/idle class.            ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+# Find the first active (UP + LOWER_UP) non-loopback interface
+get_interface() {
+    for iface in /sys/class/net/*/; do
+        iface="${iface%/}"
+        iface="${iface##*/}"
+        [[ "$iface" == "lo" ]] && continue
+        # Check operstate is up
+        if [[ -f "/sys/class/net/$iface/operstate" ]]; then
+            state=$(<"/sys/class/net/$iface/operstate")
+            if [[ "$state" == "up" ]]; then
+                echo "$iface"
+                return 0
+            fi
+        fi
+    done
+    return 1
+}
+
+# Human-readable byte formatting (pure bash, no bc dependency)
+format_bytes() {
+    local bytes=$1
+    if (( bytes >= 1073741824 )); then
+        local whole=$(( bytes / 1073741824 ))
+        local frac=$(( (bytes % 1073741824) * 10 / 1073741824 ))
+        printf "%d.%dG" "$whole" "$frac"
+    elif (( bytes >= 1048576 )); then
+        local whole=$(( bytes / 1048576 ))
+        local frac=$(( (bytes % 1048576) * 10 / 1048576 ))
+        printf "%d.%dM" "$whole" "$frac"
+    elif (( bytes >= 1024 )); then
+        local whole=$(( bytes / 1024 ))
+        local frac=$(( (bytes % 1024) * 10 / 1024 ))
+        printf "%d.%dK" "$whole" "$frac"
+    else
+        printf "%dB" "$bytes"
+    fi
+}
+
+IFACE=$(get_interface)
+
+if [[ -z "$IFACE" ]]; then
+    echo '{"text": "  --", "class": "idle", "tooltip": "No active interface"}'
+    exit 0
+fi
+
+# Read initial counters
+rx1=$(<"/sys/class/net/$IFACE/statistics/rx_bytes")
+tx1=$(<"/sys/class/net/$IFACE/statistics/tx_bytes")
+
+sleep 1
+
+# Read counters after 1 second
+rx2=$(<"/sys/class/net/$IFACE/statistics/rx_bytes")
+tx2=$(<"/sys/class/net/$IFACE/statistics/tx_bytes")
+
+# Calculate deltas (bytes per second)
+rx_delta=$(( rx2 - rx1 ))
+tx_delta=$(( tx2 - tx1 ))
+
+rx_fmt=$(format_bytes "$rx_delta")
+tx_fmt=$(format_bytes "$tx_delta")
+
+# Determine class: active if traffic > 1KB/s
+total_delta=$(( rx_delta + tx_delta ))
+if (( total_delta > 1024 )); then
+    class="active"
+else
+    class="idle"
+fi
+
+# Total counters for tooltip
+rx_total=$(format_bytes "$rx2")
+tx_total=$(format_bytes "$tx2")
+
+printf '{"text": "\u2193%s \u2191%s", "class": "%s", "tooltip": "%s: \u2193%s/s \u2191%s/s\\nTotal: \u2193%s \u2191%s"}\n' \
+    "$rx_fmt" "$tx_fmt" "$class" "$IFACE" "$rx_fmt" "$tx_fmt" "$rx_total" "$tx_total"

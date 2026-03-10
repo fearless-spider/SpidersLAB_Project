@@ -1,0 +1,48 @@
+#!/bin/bash
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — Boot Sound Trigger                                ║
+# ║  Waits for audio stack, then plays startup sound.                  ║
+# ║  "The future is now, old man."                                     ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+SOUND_FILE="/usr/share/spiderslab/sounds/startup.wav"
+LOGFILE="/tmp/spider-bootsound.log"
+
+echo "[bootsound] Waiting for PipeWire..." > "$LOGFILE"
+
+# Wait for PipeWire/PulseAudio socket (max 30 seconds)
+TRIES=0
+MAX_TRIES=60
+while [ $TRIES -lt $MAX_TRIES ]; do
+    if pactl info &>/dev/null; then
+        echo "[bootsound] PipeWire ready after ${TRIES} attempts" >> "$LOGFILE"
+        break
+    fi
+    sleep 0.5
+    TRIES=$((TRIES + 1))
+done
+
+if [ $TRIES -ge $MAX_TRIES ]; then
+    echo "[bootsound] Timeout waiting for audio. Skipping." >> "$LOGFILE"
+    exit 0
+fi
+
+# Small delay for audio device to stabilize
+sleep 0.5
+
+# Play the startup sound (non-blocking — don't hold up boot)
+if [ -f "$SOUND_FILE" ]; then
+    echo "[bootsound] Playing: $SOUND_FILE" >> "$LOGFILE"
+    paplay "$SOUND_FILE" &>> "$LOGFILE" &
+else
+    echo "[bootsound] No sound file at $SOUND_FILE — generating fallback beep" >> "$LOGFILE"
+    # Generate a short cyberpunk beep sequence using PipeWire
+    # Three ascending tones: low→mid→high
+    if command -v pw-play &>/dev/null; then
+        pw-play /usr/share/sounds/freedesktop/stereo/service-login.oga &>> "$LOGFILE" &
+    elif command -v paplay &>/dev/null; then
+        paplay /usr/share/sounds/freedesktop/stereo/service-login.oga &>> "$LOGFILE" &
+    fi
+fi
+
+echo "[bootsound] Done." >> "$LOGFILE"
