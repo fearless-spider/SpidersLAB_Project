@@ -169,6 +169,20 @@ thunar
 # ── Fonts ────────────────────────────────────────────────────
 ttf-jetbrains-mono-nerd
 
+# ── HUD & Visualization ────────────────────────────────────────
+eww
+glava
+cmatrix
+btop
+iftop
+bmon
+lm_sensors
+bc
+
+# ── Display Manager ────────────────────────────────────────────
+lemurs
+seatd
+
 # ── Spider's LAB Hacking Toolkit ─────────────────────────────
 metasploit
 wireshark-qt

@@ -1,0 +1,45 @@
+#!/bin/sh
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — Cyber-Deck Boot Sequence                          ║
+# ║  Three stacked terminals on the right: btop, cmatrix, nettop       ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+# Wait for Hyprland to be fully ready
+sleep 2
+
+# Get monitor resolution
+MONITOR_W=$(hyprctl monitors -j | jq '.[0].width')
+MONITOR_H=$(hyprctl monitors -j | jq '.[0].height')
+
+# Terminal dimensions — right third of screen, stacked in 3
+TERM_W=$(( MONITOR_W / 3 ))
+TERM_H=$(( (MONITOR_H - 48) / 3 ))
+TERM_X=$(( MONITOR_W - TERM_W - 10 ))
+
+# -- Panel 1: System Monitor (btop)
+kitty --class="cyberdeck-btop" --title="SYS.MONITOR" -e btop &
+sleep 0.5
+hyprctl dispatch movewindowpixel "exact ${TERM_X} 42" "class:cyberdeck-btop"
+hyprctl dispatch resizewindowpixel "exact ${TERM_W} ${TERM_H}" "class:cyberdeck-btop"
+
+# -- Panel 2: Data Rain (cmatrix)
+kitty --class="cyberdeck-matrix" --title="DATA.RAIN" -e cmatrix -C red &
+sleep 0.5
+Y2=$(( 42 + TERM_H + 4 ))
+hyprctl dispatch movewindowpixel "exact ${TERM_X} ${Y2}" "class:cyberdeck-matrix"
+hyprctl dispatch resizewindowpixel "exact ${TERM_W} ${TERM_H}" "class:cyberdeck-matrix"
+
+# -- Panel 3: Network Monitor (iftop or ss fallback)
+if command -v iftop >/dev/null 2>&1; then
+    NET_CMD="sudo iftop -i any -n -P"
+elif command -v bmon >/dev/null 2>&1; then
+    NET_CMD="bmon"
+else
+    NET_CMD="watch -n1 -c 'ss -tunp | head -30'"
+fi
+
+kitty --class="cyberdeck-netmon" --title="NET.INTERCEPT" -e sh -c "$NET_CMD" &
+sleep 0.5
+Y3=$(( 42 + TERM_H * 2 + 8 ))
+hyprctl dispatch movewindowpixel "exact ${TERM_X} ${Y3}" "class:cyberdeck-netmon"
+hyprctl dispatch resizewindowpixel "exact ${TERM_W} ${TERM_H}" "class:cyberdeck-netmon"

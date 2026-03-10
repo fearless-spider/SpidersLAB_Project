@@ -1,0 +1,235 @@
+// ╔══════════════════════════════════════════════════════════════════════════╗
+// ║  SPIDER'S LAB — EWW HUD STYLESHEET                                    ║
+// ║  Colors: Spider-Red (#FF0000), Electric Cyan (#00FFFF)                 ║
+// ╚══════════════════════════════════════════════════════════════════════════╝
+
+// -- Color Palette
+$bg:           rgba(0, 0, 0, 0.50);
+$bg-panel:     rgba(5, 5, 15, 0.65);
+$bg-dark:      rgba(0, 0, 0, 0.80);
+$spider-red:   #FF0000;
+$electric-cyan:#00FFFF;
+$dim-cyan:     #007777;
+$dim-red:      #770000;
+$text:         #CCCCCC;
+$text-dim:     rgba(200, 200, 200, 0.4);
+$border:       rgba(0, 255, 255, 0.15);
+$scanline:     rgba(0, 255, 255, 0.03);
+
+// -- Base
+* {
+  all: unset;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 11px;
+}
+
+// -- Sidebar Container
+.sidebar-container {
+  background: $bg;
+  border-right: 1px solid $border;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+// -- Panels (shared)
+.panel {
+  background: $bg-panel;
+  border: 1px solid $border;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.panel-title {
+  color: $electric-cyan;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+}
+
+// ── Clock ────────────────────────────────────────────────────────────────
+
+.clock-panel {
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+}
+
+.clock-time {
+  color: $electric-cyan;
+  font-size: 28px;
+  font-weight: bold;
+  letter-spacing: 3px;
+}
+
+.clock-date {
+  color: $text-dim;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+// ── Neural Load ─────────────────────────────────────────────────────────
+
+.neural-panel {
+  // scanline overlay effect via gradient
+  background-image:
+    repeating-linear-gradient(
+      180deg,
+      $scanline 0px,
+      transparent 1px,
+      transparent 3px
+    );
+  background-color: rgba(5, 5, 15, 0.65);
+}
+
+.neural-arcs {
+  margin: 6px 0;
+}
+
+.arc-meter {
+  padding: 4px;
+}
+
+.arc-track {
+  color: rgba(255, 255, 255, 0.06);
+}
+
+.arc-fill {
+  min-width: 80px;
+  min-height: 80px;
+}
+
+.arc-cyan {
+  color: $electric-cyan;
+}
+
+.arc-red {
+  color: $spider-red;
+}
+
+.arc-value {
+  color: $text;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.arc-label-box {
+  min-width: 80px;
+  min-height: 80px;
+}
+
+.arc-footer {
+  margin-top: 4px;
+}
+
+.arc-icon {
+  font-size: 12px;
+}
+
+.arc-icon-cyan {
+  color: $electric-cyan;
+}
+
+.arc-icon-red {
+  color: $spider-red;
+}
+
+.arc-name {
+  color: $text-dim;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.neural-stats {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid $border;
+}
+
+.stat-temp {
+  color: $text;
+  font-size: 10px;
+}
+
+.stat-sub {
+  color: $text-dim;
+  font-size: 9px;
+}
+
+// ── Signal / Network ────────────────────────────────────────────────────
+
+.signal-panel {
+  // subtle pulse border
+}
+
+.signal-icon {
+  color: $electric-cyan;
+  font-size: 14px;
+  margin-right: 8px;
+}
+
+.signal-row {
+  margin-bottom: 8px;
+}
+
+.signal-scale {
+  min-height: 6px;
+  border-radius: 3px;
+
+  trough {
+    background: rgba(255, 255, 255, 0.06);
+    min-height: 6px;
+    border-radius: 3px;
+  }
+
+  highlight {
+    background: linear-gradient(90deg, $dim-cyan, $electric-cyan);
+    min-height: 6px;
+    border-radius: 3px;
+  }
+}
+
+.traffic-row {
+  padding-top: 4px;
+}
+
+.traffic-icon {
+  font-size: 12px;
+  margin-right: 4px;
+}
+
+.traffic-down {
+  color: $electric-cyan;
+}
+
+.traffic-up {
+  color: $spider-red;
+}
+
+.traffic-val {
+  color: $text;
+  font-size: 10px;
+  font-family: "JetBrains Mono", monospace;
+}
+
+// ── Intercept Log ───────────────────────────────────────────────────────
+
+.log-panel {
+  min-height: 180px;
+}
+
+.log-feed {
+  background: $bg-dark;
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.log-text {
+  color: $dim-cyan;
+  font-size: 9px;
+  font-family: "JetBrains Mono", monospace;
+  padding: 2px 0;
+}

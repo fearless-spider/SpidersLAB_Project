@@ -1,0 +1,152 @@
+;; ╔══════════════════════════════════════════════════════════════════════════╗
+;; ║  SPIDER'S LAB — EWW HUD SIDEBAR                                       ║
+;; ║  "Hack the Planet." — Dade Murphy                                      ║
+;; ╚══════════════════════════════════════════════════════════════════════════╝
+
+;; ── VARIABLES — live data feeds ─────────────────────────────────────────
+
+;; Neural Load — CPU & GPU
+(defpoll cpu_usage :interval "2s"
+  `top -bn1 | awk '/Cpu\(s\)/{printf "%.0f", $2+$4}'`)
+
+(defpoll gpu_usage :interval "2s"
+  `nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null || echo "0"`)
+
+(defpoll gpu_temp :interval "5s"
+  `nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits 2>/dev/null || echo "0"`)
+
+(defpoll cpu_temp :interval "5s"
+  `sensors 2>/dev/null | awk '/Package id 0:/{gsub(/\+|°C/,""); print $4}' || echo "0"`)
+
+(defpoll ram_usage :interval "5s"
+  `free | awk '/Mem:/{printf "%.0f", $3/$2*100}'`)
+
+(defpoll vram_usage :interval "5s"
+  `nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits 2>/dev/null | awk -F', ' '{printf "%.0f", $1/$2*100}' || echo "0"`)
+
+;; Network — signal strength & traffic
+(defpoll net_signal :interval "3s"
+  `~/.config/eww/scripts/net-signal.sh`)
+
+(defpoll net_download :interval "2s"
+  `~/.config/eww/scripts/net-traffic.sh down`)
+
+(defpoll net_upload :interval "2s"
+  `~/.config/eww/scripts/net-traffic.sh up`)
+
+(defpoll net_interface :interval "10s"
+  `ip route get 1.1.1.1 2>/dev/null | awk '{print $5; exit}' || echo "none"`)
+
+;; System logs — last 5 entries (simulated network chatter)
+(defpoll syslog_feed :interval "3s"
+  `journalctl --no-pager -n 5 -o short-iso --no-hostname 2>/dev/null | tac | sed 's/^[^ ]* //' | sed 's/\"/\\\\\"/g'`)
+
+;; Time
+(defpoll clock_time :interval "1s"
+  `date '+%H:%M:%S'`)
+
+(defpoll clock_date :interval "60s"
+  `date '+%Y-%m-%d'`)
+
+
+;; ── WIDGETS ─────────────────────────────────────────────────────────────
+
+;; Circular progress — reusable arc meter
+(defwidget arc-meter [value label icon color]
+  (box :class "arc-meter" :orientation "v" :space-evenly false
+    (overlay
+      (circular-progress
+        :value value
+        :thickness 6
+        :clockwise true
+        :start-at 75
+        :class "arc-track")
+      (circular-progress
+        :value value
+        :thickness 6
+        :clockwise true
+        :start-at 75
+        :class "arc-fill arc-${color}")
+      (box :class "arc-label-box" :valign "center" :halign "center"
+        (label :text "${value}%" :class "arc-value")))
+    (box :class "arc-footer" :halign "center" :space-evenly false
+      (label :text icon :class "arc-icon arc-icon-${color}")
+      (label :text " ${label}" :class "arc-name"))))
+
+
+;; Neural Load panel — CPU + GPU dual arcs
+(defwidget neural-load []
+  (box :class "panel neural-panel" :orientation "v" :space-evenly false
+    (label :text "NEURAL LOAD" :class "panel-title")
+    (box :orientation "h" :space-evenly true :class "neural-arcs"
+      (arc-meter :value cpu_usage :label "CPU" :icon "" :color "cyan")
+      (arc-meter :value gpu_usage :label "GPU" :icon "" :color "red"))
+    (box :orientation "h" :space-evenly true :class "neural-stats"
+      (box :orientation "v" :space-evenly false
+        (label :text "CPU ${cpu_temp}C" :class "stat-temp")
+        (label :text "RAM ${ram_usage}%" :class "stat-sub"))
+      (box :orientation "v" :space-evenly false
+        (label :text "GPU ${gpu_temp}C" :class "stat-temp")
+        (label :text "VRAM ${vram_usage}%" :class "stat-sub")))))
+
+
+;; Network log — scrolling system entries
+(defwidget net-log []
+  (box :class "panel log-panel" :orientation "v" :space-evenly false
+    (label :text "INTERCEPT LOG" :class "panel-title")
+    (box :class "log-feed" :orientation "v" :space-evenly false
+      (label :text syslog_feed
+             :class "log-text"
+             :wrap true
+             :xalign 0))))
+
+
+;; Signal strength bar
+(defwidget signal-bar []
+  (box :class "panel signal-panel" :orientation "v" :space-evenly false
+    (label :text "SIGNAL / ${net_interface}" :class "panel-title")
+    (box :class "signal-meter" :orientation "v" :space-evenly false
+      (box :orientation "h" :space-evenly false :class "signal-row"
+        (label :text "" :class "signal-icon")
+        (scale :min 0 :max 100 :value net_signal
+               :orientation "h" :class "signal-scale"))
+      (box :orientation "h" :space-evenly true :class "traffic-row"
+        (box :orientation "h" :space-evenly false
+          (label :text " " :class "traffic-icon traffic-down")
+          (label :text "${net_download}" :class "traffic-val"))
+        (box :orientation "h" :space-evenly false
+          (label :text " " :class "traffic-icon traffic-up")
+          (label :text "${net_upload}" :class "traffic-val"))))))
+
+
+;; Clock
+(defwidget hud-clock []
+  (box :class "panel clock-panel" :orientation "v" :space-evenly false
+    (label :text clock_time :class "clock-time")
+    (label :text clock_date :class "clock-date")))
+
+
+;; ── MAIN SIDEBAR ASSEMBLY ───────────────────────────────────────────────
+
+(defwidget sidebar []
+  (box :class "sidebar-container" :orientation "v" :space-evenly false
+    (hud-clock)
+    (neural-load)
+    (signal-bar)
+    (net-log)))
+
+
+;; ── WINDOW ──────────────────────────────────────────────────────────────
+
+(defwindow hud-sidebar
+  :monitor 0
+  :geometry (geometry
+    :x "10px"
+    :y "46px"
+    :width "280px"
+    :height "90%"
+    :anchor "top left")
+  :stacking "bg"
+  :exclusive false
+  :focusable false
+  (sidebar))
