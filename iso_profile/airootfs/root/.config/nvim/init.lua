@@ -883,6 +883,10 @@ map("n", "<leader>br", "<cmd>wa<cr><cmd>qa<cr>",
 map("n", "<leader>w", "<cmd>w<cr>",
     { desc = "Spider's LAB — Write buffer" })
 
+-- // Quit — close the current window. Clean exit.
+map("n", "<leader>q", "<cmd>q<cr>",
+    { desc = "Spider's LAB — Quit window" })
+
 -- // Clear search highlighting — disappear the evidence.
 map("n", "<Esc>", "<cmd>nohlsearch<cr>",
     { desc = "Clear search highlights" })
