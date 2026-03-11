@@ -145,14 +145,19 @@ spider() {
         prompt="${prompt}\n\n--- INPUT ---\n${piped_input}\n--- END ---"
     fi
 
-    # System prompt for Spider-Sense personality
-    local system_prompt="You are Spider-Sense, a cybersecurity-focused AI assistant embedded in Spider's LAB (a hacker workstation). Be concise, technical, and direct. Use terminal-friendly formatting. When analyzing code, prioritize security implications. When explaining, assume the user is an experienced developer."
+    # System prompt with live context injection
+    local system_prompt="You are Spider-Sense, a cybersecurity-focused AI assistant embedded in Spider's LAB.
+Current time: $(date '+%H:%M:%S') | Date: $(date '+%A, %d %B %Y')
+User: $USER@${HOST} | System: $(uname -sr) | Shell: $SHELL
+Working dir: $PWD
+Be concise, technical, and direct. Use terminal-friendly formatting. When analyzing code, prioritize security implications. Assume the user is an experienced developer."
 
     echo -e "\e[2m░▒▓\e[0m\e[36m\e[1m SPIDER-SENSE \e[0m\e[2m▓▒░\e[0m \e[2mThinking...\e[0m"
     echo ""
 
-    # Call Ollama
-    echo -e "${prompt}" | ollama run "$model" --system "$system_prompt" 2>/dev/null
+    # Call Ollama — inject system context as prompt prefix
+    local full_prompt="[SYSTEM INSTRUCTIONS: ${system_prompt}]\n\n${prompt}"
+    echo -e "${full_prompt}" | ollama run "$model" 2>/dev/null
 
     if [[ $? -ne 0 ]]; then
         echo -e "\e[31m[SPIDER-SENSE]\e[0m Model '${model}' not available. Pull it: ollama pull ${model}"
