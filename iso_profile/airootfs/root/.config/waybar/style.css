@@ -95,6 +95,7 @@ tooltip label {
 #custom-vram,
 #custom-nettraffic,
 #custom-neuralload,
+#custom-ai-status,
 #custom-separator,
 #custom-power,
 #custom-ghost,
@@ -444,6 +445,47 @@ tooltip label {
 @keyframes neuralPulse {
     0%   { opacity: 0.85; text-shadow: 0 0 4px rgba(175, 109, 249, 0.3); }
     100% { opacity: 1.0;  text-shadow: 0 0 8px rgba(175, 109, 249, 0.7); }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   AI STATUS — Spider-Sense Ollama indicator
+   ══════════════════════════════════════════════════════════════════════ */
+
+#custom-ai-status {
+    color: @text_dim;
+    font-size: 15px;
+    padding: 0 10px;
+    transition: all 0.3s ease;
+}
+
+#custom-ai-status.active {
+    color: @spider_red;
+    text-shadow:
+        0 0 8px rgba(252, 25, 154, 0.7),
+        0 0 20px rgba(252, 25, 154, 0.3);
+    animation: aiPulse 1.2s ease-in-out infinite alternate;
+}
+
+#custom-ai-status.idle {
+    color: @neon_magenta;
+    opacity: 0.5;
+    text-shadow: none;
+}
+
+#custom-ai-status:hover {
+    color: @spider_red;
+    text-shadow:
+        0 0 12px rgba(252, 25, 154, 0.8),
+        0 0 30px rgba(252, 25, 154, 0.4);
+    background: rgba(252, 25, 154, 0.08);
+    border-radius: 6px;
+    opacity: 1.0;
+}
+
+@keyframes aiPulse {
+    0%   { opacity: 0.75; text-shadow: 0 0 6px rgba(252, 25, 154, 0.4); }
+    100% { opacity: 1.0;  text-shadow: 0 0 14px rgba(252, 25, 154, 0.9); }
 }
 
 

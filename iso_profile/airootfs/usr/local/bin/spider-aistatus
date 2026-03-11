@@ -1,0 +1,16 @@
+#!/bin/sh
+# Spider-Sense AI Status — Waybar module
+# Checks if Ollama is using >10% GPU. Outputs JSON for waybar.
+
+gpu_usage=0
+if command -v nvidia-smi >/dev/null 2>&1; then
+    # Find ollama_llama_server or ollama processes using GPU
+    gpu_usage=$(nvidia-smi pmon -c 1 -s u 2>/dev/null \
+        | awk '/ollama/{sum+=$4} END{printf "%d", sum+0}')
+fi
+
+if [ "$gpu_usage" -gt 10 ] 2>/dev/null; then
+    printf '{"text":"󰚩 %d%%","class":"active","tooltip":"Spider-Sense ACTIVE — Ollama GPU: %d%%"}\n' "$gpu_usage" "$gpu_usage"
+else
+    printf '{"text":"󰚩","class":"idle","tooltip":"Spider-Sense idle"}\n'
+fi

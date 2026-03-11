@@ -783,6 +783,26 @@ require("lazy").setup({
         opts = { check_ts = true },
     },
 
+    -- // Gen.nvim — local AI via Ollama inside the editor.
+    --  Select code → <leader>ai to chat, or use specific commands.
+    {
+        "David-Kunz/gen.nvim",
+        cmd = "Gen",
+        keys = {
+            { "<leader>ai", ":Gen<CR>",                mode = { "n", "v" }, desc = "Spider-Sense — AI Menu" },
+            { "<leader>ae", ":Gen Explain_Code<CR>",   mode = "v",          desc = "Spider-Sense — Explain" },
+            { "<leader>at", ":Gen Generate_Tests<CR>",  mode = "v",          desc = "Spider-Sense — Tests" },
+            { "<leader>ao", ":Gen Optimize_Code<CR>",   mode = "v",          desc = "Spider-Sense — Optimize" },
+            { "<leader>ar", ":Gen Review_Code<CR>",     mode = "v",          desc = "Spider-Sense — Review" },
+            { "<leader>af", ":Gen Fix_Code<CR>",        mode = "v",          desc = "Spider-Sense — Fix" },
+        },
+        opts = {
+            model = "llama3.2",
+            display_mode = "split",
+            show_model = true,
+        },
+    },
+
     -- // Gitsigns — git status in the gutter.
     {
         "lewis6991/gitsigns.nvim",

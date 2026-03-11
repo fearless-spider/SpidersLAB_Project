@@ -44,6 +44,8 @@
         "custom/separator",
         "custom/neuralload",
         "custom/separator",
+        "custom/ai-status",
+        "custom/separator",
         "pulseaudio",
         "custom/separator",
         "battery",
@@ -203,6 +205,16 @@
         "return-type": "json",
         "interval": 5,
         "format": "{}",
+        "tooltip": true
+    },
+
+    // AI Status — Ollama GPU activity indicator
+    "custom/ai-status": {
+        "exec": "spider-aistatus",
+        "return-type": "json",
+        "interval": 3,
+        "format": "{}",
+        "on-click": "kitty --class=kitty-hazard --config=~/.config/kitty/kitty-hazard.conf -e ollama run llama3.2",
         "tooltip": true
     },
 

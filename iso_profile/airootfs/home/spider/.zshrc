@@ -98,6 +98,7 @@ alias summon='spider-summon'
 alias ss='spider-status 2>/dev/null || echo "Not in a devenv shell"'
 alias scan='spider-scan 2>/dev/null || echo "Not in a devenv shell"'
 alias ghost='ghost-out'
+alias fixme='journalctl -xe --no-pager | tail -30 | spider "Diagnose this system error. Give 3 concise bullet points: cause, fix, prevention."'
 
 
 # ══════════════════════════════════════════════════════════════════════
