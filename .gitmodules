@@ -1,0 +1,3 @@
+[submodule "hypr-hud-frame"]
+	path = hypr-hud-frame
+	url = https://github.com/fearless-spider/hypr-hud-frame.git
