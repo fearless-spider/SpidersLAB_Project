@@ -214,7 +214,7 @@
         "return-type": "json",
         "interval": 3,
         "format": "{}",
-        "on-click": "kitty --class=kitty-hazard --config=~/.config/kitty/kitty-hazard.conf -e zsh -ic 'echo -e \"\\e[36m[SPIDER-SENSE]\\e[0m Type: spider \\\"your question\\\"\\n\"; exec zsh'",
+        "on-click": "kitty --class=kitty-hazard -e zsh",
         "tooltip": true
     },
 
