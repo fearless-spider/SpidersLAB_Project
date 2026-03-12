@@ -1,0 +1,250 @@
+#!/bin/bash
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — Desktop Intro Sequence                             ║
+# ║  Inspired by the 1995 film "Hackers"                               ║
+# ║  Fullscreen terminal animation on Hyprland startup.                ║
+# ║  "Hack the Planet." — Zero Cool                                    ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+# ── Colors ───────────────────────────────────────────────────────────
+R='\e[31m'      # Red
+BR='\e[1;31m'   # Bold Red
+C='\e[36m'      # Cyan
+BC='\e[1;36m'   # Bold Cyan
+G='\e[32m'      # Green
+BG='\e[1;32m'   # Bold Green
+M='\e[35m'      # Magenta
+BM='\e[1;35m'   # Bold Magenta
+W='\e[37m'      # White
+BW='\e[1;37m'   # Bold White
+D='\e[2m'       # Dim
+DG='\e[2;32m'   # Dim Green
+DC='\e[2;36m'   # Dim Cyan
+DR='\e[2;31m'   # Dim Red
+DM='\e[2;35m'   # Dim Magenta
+N='\e[0m'       # Reset
+
+COLS=$(tput cols 2>/dev/null || echo 120)
+ROWS=$(tput lines 2>/dev/null || echo 36)
+
+# Hide cursor, clear screen
+tput civis 2>/dev/null
+clear
+
+# Center text helper
+center() {
+    local text="$1"
+    local clean
+    clean=$(echo -e "$text" | sed 's/\x1b\[[0-9;]*m//g')
+    local len=${#clean}
+    local pad=$(( (COLS - len) / 2 ))
+    [ $pad -lt 0 ] && pad=0
+    printf "%${pad}s" ""
+    echo -e "$text"
+}
+
+# Type text character by character
+typewrite() {
+    local text="$1"
+    local color="$2"
+    local delay="${3:-0.03}"
+    local clean
+    clean=$(echo -e "$text" | sed 's/\x1b\[[0-9;]*m//g')
+    local pad=$(( (COLS - ${#clean}) / 2 ))
+    [ $pad -lt 0 ] && pad=0
+    printf "%${pad}s" ""
+    for ((i=0; i<${#text}; i++)); do
+        printf "${color}%s${N}" "${text:$i:1}"
+        sleep "$delay"
+    done
+    echo ""
+}
+
+# Glitch line — random characters replacing text briefly
+glitch_line() {
+    local text="$1"
+    local color="$2"
+    local chars="@#$%&!<>{}[]|/\\~═░▒▓█"
+    local clean
+    clean=$(echo -e "$text" | sed 's/\x1b\[[0-9;]*m//g')
+    local len=${#clean}
+    local pad=$(( (COLS - len) / 2 ))
+    [ $pad -lt 0 ] && pad=0
+
+    # Show glitched version
+    for pass in 1 2 3; do
+        printf "\r%${pad}s" ""
+        for ((i=0; i<len; i++)); do
+            if [ $((RANDOM % 3)) -eq 0 ]; then
+                printf "${DR}%s" "${chars:$((RANDOM % ${#chars})):1}"
+            else
+                printf "${DM}%s" "${chars:$((RANDOM % ${#chars})):1}"
+            fi
+        done
+        sleep 0.05
+    done
+
+    # Resolve to real text
+    printf "\r%${pad}s" ""
+    printf "${color}%s${N}" "$text"
+    echo ""
+}
+
+# ══════════════════════════════════════════════════════════════════════
+#  PHASE 1: BLACK SCREEN + CURSOR BLINK (1s)
+# ══════════════════════════════════════════════════════════════════════
+sleep 0.5
+
+# Fake terminal prompt appearing
+ROW=$((ROWS / 2 - 8))
+tput cup $ROW 0
+
+center "${DG}Establishing secure connection...${N}"
+sleep 0.4
+
+# Connection animation
+for i in $(seq 1 5); do
+    DOT=""
+    for j in $(seq 1 $i); do DOT+="█"; done
+    PAD=""
+    for j in $(seq $i 5); do PAD+="░"; done
+    center "${DC}[${BG}${DOT}${DC}${PAD}]  ${DG}Node $i/5 verified${N}"
+    sleep 0.15
+done
+
+sleep 0.3
+
+# ══════════════════════════════════════════════════════════════════════
+#  PHASE 2: DATA RAIN — vertical streams (2s)
+# ══════════════════════════════════════════════════════════════════════
+clear
+CHARS="01アイウエオカキクケコサシスセソタチツテト"
+
+for row in $(seq 1 $((ROWS - 2))); do
+    LINE=""
+    for col in $(seq 1 $((COLS - 1))); do
+        ROLL=$((RANDOM % 20))
+        if [ $ROLL -lt 2 ]; then
+            CHAR="${CHARS:$((RANDOM % ${#CHARS})):1}"
+            LINE+="${BG}${CHAR}"
+        elif [ $ROLL -lt 4 ]; then
+            CHAR="${CHARS:$((RANDOM % ${#CHARS})):1}"
+            LINE+="${DG}${CHAR}"
+        elif [ $ROLL -lt 5 ]; then
+            CHAR="${CHARS:$((RANDOM % ${#CHARS})):1}"
+            LINE+="${DC}${CHAR}"
+        else
+            LINE+=" "
+        fi
+    done
+    echo -e "${LINE}${N}"
+    sleep 0.02
+done
+
+sleep 0.3
+
+# ══════════════════════════════════════════════════════════════════════
+#  PHASE 3: GLITCH TRANSITION — screen tears
+# ══════════════════════════════════════════════════════════════════════
+for tear in $(seq 1 6); do
+    tput cup $((RANDOM % ROWS)) 0
+    TEAR_LINE=""
+    for col in $(seq 1 $COLS); do
+        TEAR_LINE+="${BR}$(printf '%s' "═░▒▓█" | cut -c$((RANDOM % 5 + 1)))"
+    done
+    echo -ne "${TEAR_LINE}${N}"
+    sleep 0.04
+done
+
+sleep 0.2
+clear
+
+# ══════════════════════════════════════════════════════════════════════
+#  PHASE 4: SPIDER'S LAB LOGO — glitch reveal
+# ══════════════════════════════════════════════════════════════════════
+ROW=$((ROWS / 2 - 10))
+tput cup $ROW 0
+
+echo ""
+echo ""
+glitch_line "███████╗██████╗ ██╗██████╗ ███████╗██████╗ ██╗███████╗" "${BR}"
+glitch_line "██╔════╝██╔══██╗██║██╔══██╗██╔════╝██╔══██╗╚═╝██╔════╝" "${BR}"
+glitch_line "███████╗██████╔╝██║██║  ██║█████╗  ██████╔╝   ███████╗" "${BR}"
+glitch_line "╚════██║██╔═══╝ ██║██║  ██║██╔══╝  ██╔══██╗   ╚════██║" "${BR}"
+glitch_line "███████║██║     ██║██████╔╝███████╗██║  ██║   ███████║" "${BR}"
+glitch_line "╚══════╝╚═╝     ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝   ╚══════╝" "${BR}"
+
+sleep 0.3
+echo ""
+center "${DC}──────────────────────────────────────────${N}"
+echo ""
+typewrite "L  A  B  O  R  A  T  O  R  Y" "${BC}" 0.06
+
+sleep 0.5
+
+# ══════════════════════════════════════════════════════════════════════
+#  PHASE 5: SYSTEM ACCESS — hacking sequence
+# ══════════════════════════════════════════════════════════════════════
+echo ""
+center "${DC}──────────────────────────────────────────${N}"
+echo ""
+
+typewrite "INITIATING NEURAL HANDSHAKE..." "${DG}" 0.02
+sleep 0.3
+
+# Scrolling access messages
+access_msgs=(
+    "${DG}[SYS]${N}  ${G}Hyprland compositor ................. ${BG}ACTIVE${N}"
+    "${DG}[GPU]${N}  ${G}NVIDIA RTX 3060 (12GB VRAM) ......... ${BG}ONLINE${N}"
+    "${DG}[NET]${N}  ${G}Network interface .................... ${BG}LINKED${N}"
+    "${DG}[SEC]${N}  ${G}Firewall rules ...................... ${BG}LOADED${N}"
+    "${DG}[SND]${N}  ${G}PipeWire audio engine ............... ${BG}READY${N}"
+    "${DG}[AI ]${N}  ${G}Ollama neural core .................. ${BC}STANDBY${N}"
+    "${DG}[HUD]${N}  ${G}HUD frame decorations ............... ${BM}ARMED${N}"
+    "${DG}[WEB]${N}  ${G}Spider web protocol ................. ${BR}ACTIVE${N}"
+)
+
+for msg in "${access_msgs[@]}"; do
+    center "$msg"
+    sleep 0.12
+done
+
+sleep 0.5
+
+# ══════════════════════════════════════════════════════════════════════
+#  PHASE 6: ACCESS GRANTED — final message
+# ══════════════════════════════════════════════════════════════════════
+echo ""
+echo ""
+
+# Flash effect
+for flash in 1 2 3; do
+    tput cup $((ROWS - 6)) 0
+    center "${BW}█████████████████████████████████████████████████${N}"
+    sleep 0.04
+    tput cup $((ROWS - 6)) 0
+    center "                                                 "
+    sleep 0.04
+done
+
+center "${BR}╔═══════════════════════════════════════════════╗${N}"
+center "${BR}║                                               ║${N}"
+center "${BR}║${BW}         A C C E S S   G R A N T E D           ${BR}║${N}"
+center "${BR}║                                               ║${N}"
+center "${BR}╚═══════════════════════════════════════════════╝${N}"
+
+echo ""
+center "${DC}\"Mess with the best, die like the rest.\"${N}"
+
+sleep 1.2
+
+# ══════════════════════════════════════════════════════════════════════
+#  PHASE 7: FADE OUT — progressive dim
+# ══════════════════════════════════════════════════════════════════════
+for i in $(seq 1 5); do
+    printf '\e[2m'
+    sleep 0.1
+done
+
+clear
+tput cnorm 2>/dev/null
