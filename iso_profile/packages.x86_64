@@ -148,7 +148,6 @@ dunst
 swww
 
 # ── Python (wallpaper generator) ────────────────────────────
-python
 python-pillow
 
 # ── Audio Stack (PipeWire) ───────────────────────────────────
@@ -175,7 +174,6 @@ ttf-jetbrains-mono-nerd
 
 # ── HUD & Visualization ────────────────────────────────────────
 eww
-glava
 cmatrix
 btop
 iftop
@@ -187,11 +185,69 @@ bc
 lemurs
 seatd
 
-# ── Spider's LAB Hacking Toolkit ─────────────────────────────
-metasploit
-wireshark-qt
+# ── Base Development ───────────────────────────────────────────
+base-devel
+git
+gcc
+cmake
+make
+pkg-config
+autoconf
+automake
+patch
+gdb
+valgrind
+strace
+
+# ── Languages & Runtimes ──────────────────────────────────────
+python
+python-pip
+python-virtualenv
+nodejs
+npm
+rustup
+go
+lua
+luarocks
+
+# ── Development Tools ─────────────────────────────────────────
 neovim
 tree-sitter-cli
 direnv
 htop
+docker
+docker-compose
+lazygit
+ripgrep
+fd
+fzf
+bat
+eza
+tokei
+github-cli
+
+# ── Libraries & Headers ──────────────────────────────────────
+openssl
+curl
+wget
+unzip
+zip
+p7zip
+
+# ── Spider's LAB Hacking Toolkit ─────────────────────────────
+metasploit
+wireshark-qt
+nmap
+burpsuite
+john
+hashcat
+aircrack-ng
+sqlmap
+gobuster
+hydra
+netcat
+socat
+tcpdump
+whois
+bind-tools
 ollama-cuda
