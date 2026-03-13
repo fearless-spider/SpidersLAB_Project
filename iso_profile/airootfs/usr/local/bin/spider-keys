@@ -1,0 +1,156 @@
+#!/usr/bin/env bash
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SPIDER'S LAB — Keybinding Cheatsheet                             ║
+# ║  Parses live Hyprland binds and displays in rofi                   ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+# Modmask → human-readable modifier names
+mod_name() {
+    local mask=$1
+    local mods=""
+    (( mask & 1 ))  && mods+="Shift+"
+    (( mask & 4 ))  && mods+="Ctrl+"
+    (( mask & 8 ))  && mods+="Alt+"
+    (( mask & 64 )) && mods+="Super+"
+    echo "${mods%+}"
+}
+
+# Dispatcher → friendly category
+category() {
+    case "$1" in
+        exec)            echo "Launch" ;;
+        killactive)      echo "Window" ;;
+        togglefloating)  echo "Window" ;;
+        fullscreen)      echo "Window" ;;
+        togglesplit)     echo "Window" ;;
+        pseudo)          echo "Window" ;;
+        movefocus)       echo "Focus" ;;
+        movewindow)      echo "Move" ;;
+        resizeactive)    echo "Resize" ;;
+        workspace)       echo "Workspace" ;;
+        movetoworkspace) echo "Workspace" ;;
+        movetoworkspacesilent) echo "Workspace" ;;
+        exit)            echo "System" ;;
+        dpms)            echo "System" ;;
+        *)               echo "Other" ;;
+    esac
+}
+
+# Dispatcher → friendly action description
+action_desc() {
+    local disp="$1"
+    local arg="$2"
+    case "$disp" in
+        exec)
+            # Shorten long commands — show just the binary name
+            local bin
+            bin=$(echo "$arg" | awk '{print $1}' | sed 's|.*/||')
+            echo "$bin" ;;
+        killactive)      echo "Close window" ;;
+        togglefloating)  echo "Toggle floating" ;;
+        fullscreen)
+            case "$arg" in
+                0) echo "Fullscreen" ;;
+                1) echo "Maximize" ;;
+                *) echo "Fullscreen ($arg)" ;;
+            esac ;;
+        togglesplit)     echo "Toggle split" ;;
+        pseudo)          echo "Pseudo tile" ;;
+        movefocus)       echo "Focus $arg" ;;
+        movewindow)      echo "Move window $arg" ;;
+        resizeactive)    echo "Resize $arg" ;;
+        workspace)       echo "Go to $arg" ;;
+        movetoworkspace) echo "Send to $arg" ;;
+        movetoworkspacesilent) echo "Send silent to $arg" ;;
+        exit)            echo "Exit Hyprland" ;;
+        dpms)            echo "DPMS $arg" ;;
+        *)               echo "$disp $arg" ;;
+    esac
+}
+
+# Parse hyprctl binds JSON → formatted lines
+generate_lines() {
+    hyprctl binds -j | jq -r '.[] | "\(.modmask)\t\(.key)\t\(.dispatcher)\t\(.arg)"' | \
+    while IFS=$'\t' read -r mask key disp arg; do
+        local mods
+        mods=$(mod_name "$mask")
+        local cat
+        cat=$(category "$disp")
+        local desc
+        desc=$(action_desc "$disp" "$arg")
+        local combo
+        if [[ -n "$mods" ]]; then
+            combo="${mods}+${key}"
+        else
+            combo="${key}"
+        fi
+        printf "%-12s  %-24s  %s\n" "$cat" "$combo" "$desc"
+    done | sort -t' ' -k1,1 -k2,2
+}
+
+# Header
+header="Category      Keybind                   Action"
+
+# Run rofi
+generate_lines | rofi -dmenu \
+    -i \
+    -p "⌨ Spider Keys" \
+    -mesg "$header" \
+    -theme-str '
+        window {
+            width: 720px;
+            background-color: #0a0810ee;
+            border: 2px solid;
+            border-color: #61E2FFcc;
+            border-radius: 0px;
+        }
+        mainbox {
+            background-color: transparent;
+        }
+        inputbar {
+            background-color: #15102088;
+            text-color: #61E2FF;
+            border: 0 0 1px 0;
+            border-color: #61E2FF44;
+            padding: 12px;
+        }
+        prompt {
+            text-color: #FC199A;
+        }
+        entry {
+            text-color: #61E2FF;
+            placeholder-color: #6B5F7B;
+        }
+        message {
+            background-color: #15102088;
+            border: 0 0 1px 0;
+            border-color: #61E2FF22;
+            padding: 8px 12px;
+        }
+        textbox {
+            text-color: #AF6DF9;
+            font: "JetBrainsMono Nerd Font 10";
+        }
+        listview {
+            background-color: transparent;
+            lines: 20;
+            scrollbar: false;
+            padding: 4px 0;
+        }
+        element {
+            background-color: transparent;
+            text-color: #cdd6f4;
+            padding: 4px 12px;
+        }
+        element selected {
+            background-color: #61E2FF22;
+            text-color: #61E2FF;
+            border: 0 0 0 2px;
+            border-color: #61E2FF;
+        }
+        element-text {
+            font: "JetBrainsMono Nerd Font 11";
+            background-color: transparent;
+            text-color: inherit;
+        }
+    '
