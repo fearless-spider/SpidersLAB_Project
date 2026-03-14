@@ -1,137 +1,281 @@
 // ╔══════════════════════════════════════════════════════════════════════╗
-// ║  SPIDER'S LAB — Plymouth Boot Animation                            ║
+// ║  SPIDER'S LAB — System Initialization HUD                         ║
 // ║  "Hack the Planet." — Zero Cool                                    ║
 // ║                                                                    ║
-// ║  A hot pink spider web pulses with a breathing glow.               ║
-// ║  A cyan circuit line creeps around the screen edges.               ║
-// ║  Deep purple void. Fluoromachine palette. Intimidating.            ║
+// ║  Sci-Fi boot sequence: spinning HUD rings, hex grid overlay,       ║
+// ║  terminal-style system messages, scanline sweep.                   ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 
-// ── SCREEN SETUP ─────────────────────────────────────────────────────
-Window.SetBackgroundTopColor(0.098, 0.090, 0.141);
-Window.SetBackgroundBottomColor(0.078, 0.071, 0.118);
+// ── SCREEN SETUP ────────────────────────────────────────────────────
+Window.SetBackgroundTopColor(0.039, 0.031, 0.063);
+Window.SetBackgroundBottomColor(0.031, 0.027, 0.051);
 
-screen_width = Window.GetWidth();
-screen_height = Window.GetHeight();
-center_x = screen_width / 2;
-center_y = screen_height / 2;
+screen_w = Window.GetWidth();
+screen_h = Window.GetHeight();
+cx = screen_w / 2;
+cy = screen_h / 2;
 
-// ── LOGO — "SPIDER'S LAB" text image ────────────────────────────────
+
+// ── HEX GRID — subtle background pattern ───────────────────────────
+hex_grid.image = Image("hex-grid.png");
+hex_grid.sprite = Sprite(hex_grid.image);
+hex_grid.sprite.SetPosition(0, 0, 1);
+hex_grid.sprite.SetOpacity(0.0);
+
+
+// ── HUD CORNERS — frame brackets ───────────────────────────────────
+corner_margin = 80;
+
+corner_tl.image = Image("corner-tl.png");
+corner_tl.sprite = Sprite(corner_tl.image);
+corner_tl.sprite.SetPosition(corner_margin, corner_margin, 5);
+corner_tl.sprite.SetOpacity(0.0);
+
+corner_tr.image = Image("corner-tr.png");
+corner_tr.sprite = Sprite(corner_tr.image);
+corner_tr.sprite.SetPosition(screen_w - corner_margin - 60, corner_margin, 5);
+corner_tr.sprite.SetOpacity(0.0);
+
+corner_bl.image = Image("corner-bl.png");
+corner_bl.sprite = Sprite(corner_bl.image);
+corner_bl.sprite.SetPosition(corner_margin, screen_h - corner_margin - 60, 5);
+corner_bl.sprite.SetOpacity(0.0);
+
+corner_br.image = Image("corner-br.png");
+corner_br.sprite = Sprite(corner_br.image);
+corner_br.sprite.SetPosition(screen_w - corner_margin - 60, screen_h - corner_margin - 60, 5);
+corner_br.sprite.SetOpacity(0.0);
+
+
+// ── HUD RINGS — spinning scanner ───────────────────────────────────
+ring1.image = Image("hud-ring.png");
+ring1.sprite = Sprite(ring1.image);
+ring1.sprite.SetPosition(cx - 80, cy - 80 - 30, 8);
+ring1.sprite.SetOpacity(0.0);
+
+ring2.image = Image("hud-ring2.png");
+ring2.sprite = Sprite(ring2.image);
+ring2.sprite.SetPosition(cx - 80, cy - 80 - 30, 7);
+ring2.sprite.SetOpacity(0.0);
+
+
+// ── LOGO — Spider's LAB ────────────────────────────────────────────
 logo.image = Image("logo.png");
 logo.sprite = Sprite(logo.image);
-logo.sprite.SetPosition(
-    center_x - logo.image.GetWidth() / 2,
-    center_y - logo.image.GetHeight() / 2 - 40,
-    10
-);
-logo.opacity = 1.0;
+logo.sprite.SetPosition(cx - logo.image.GetWidth() / 2, cy - 30, 10);
+logo.sprite.SetOpacity(0.0);
 
-// ── SPIDER WEB — breathing pulse overlay ─────────────────────────────
-web.image = Image("web.png");
-web.sprite = Sprite(web.image);
-web.sprite.SetPosition(
-    center_x - web.image.GetWidth() / 2,
-    center_y - web.image.GetHeight() / 2,
-    5
-);
 
-// ── PROGRESS BAR — cyan circuit line ─────────────────────────────────
-// Thin horizontal bar below the logo
-bar_width = Math.Int(screen_width * 0.35);
-bar_height = 2;
-bar_x = center_x - bar_width / 2;
-bar_y = center_y + logo.image.GetHeight() / 2 + 20;
+// ── PROGRESS BAR — HUD style ───────────────────────────────────────
+bar_w = 400;
+bar_x = cx - bar_w / 2;
+bar_y = cy + 80;
 
-progress_box.image = Image("progress-bar.png");
-progress_box.sprite = Sprite(progress_box.image);
-progress_box.sprite.SetPosition(bar_x, bar_y, 15);
+hud_bar.image = Image("hud-bar.png");
+hud_bar.sprite = Sprite(hud_bar.image);
+hud_bar.sprite.SetPosition(bar_x, bar_y, 15);
+hud_bar.sprite.SetOpacity(0.0);
 
-progress_fill.image = Image("progress-fill.png");
-progress_fill.sprite = Sprite(progress_fill.image);
-progress_fill.sprite.SetPosition(bar_x, bar_y, 16);
+hud_fill.image = Image("hud-fill.png");
+hud_fill.sprite = Sprite(hud_fill.image);
+hud_fill.sprite.SetPosition(bar_x + 2, bar_y + 2, 16);
+hud_fill.sprite.SetOpacity(0.0);
 
-// ── STATUS TEXT ──────────────────────────────────────────────────────
-status_text.sprite = Sprite();
-status_text.sprite.SetPosition(
-    center_x,
-    bar_y + 25,
-    20
-);
 
-// ── ANIMATION STATE ──────────────────────────────────────────────────
+// ── SCANLINE — horizontal sweep ────────────────────────────────────
+scanline.image = Image("scanline.png");
+scanline.sprite = Sprite(scanline.image);
+scanline.sprite.SetPosition(0, 0, 20);
+scanline.sprite.SetOpacity(0.0);
+
+
+// ── STATUS TEXT — system init messages ──────────────────────────────
+status_line.sprite = Sprite();
+status_line.sprite.SetPosition(cx, bar_y + 35, 12);
+
+// Percentage text
+pct_text.sprite = Sprite();
+pct_text.sprite.SetPosition(cx, bar_y + 5, 17);
+
+
+// ── ANIMATION STATE ────────────────────────────────────────────────
 global.progress = 0;
-global.breath_counter = 0;
-global.fade_in = 1;
+global.frame = 0;
+global.fade_in = 0.0;
+global.ring_angle = 0;
+global.scanline_y = 0;
+global.last_msg_idx = -1;
 
-// ── BREATHING EFFECT — spider web pulses ─────────────────────────────
-fun breathe() {
-    global.breath_counter += 0.03;
 
-    // Sine wave breathing: oscillates between 0.25 and 0.85
-    breath_val = 0.25 + 0.60 * (0.5 + 0.5 * Math.Sin(global.breath_counter));
+// ── SYSTEM MESSAGES — appear at different progress levels ──────────
+// Plymouth script doesn't have arrays, so we use if/else chains
 
-    web.sprite.SetOpacity(breath_val);
-
-    // Logo has a subtler pulse
-    logo_breath = 0.75 + 0.25 * (0.5 + 0.5 * Math.Sin(global.breath_counter * 0.7));
-    logo.sprite.SetOpacity(logo_breath);
+fun get_boot_message(progress) {
+    if (progress < 0.08)
+        return "[CORE]  Neural matrix initializing...";
+    if (progress < 0.15)
+        return "[SYS]   Kernel modules loaded";
+    if (progress < 0.22)
+        return "[NET]   Quantum link establishing...";
+    if (progress < 0.30)
+        return "[SEC]   Firewall protocols armed";
+    if (progress < 0.40)
+        return "[GPU]   Render pipeline online";
+    if (progress < 0.50)
+        return "[HUD]   Frame decorations loading...";
+    if (progress < 0.60)
+        return "[AUDIO] PipeWire nodes connected";
+    if (progress < 0.70)
+        return "[WAYLAND] Compositor initializing...";
+    if (progress < 0.80)
+        return "[HYPR]  Window manager starting...";
+    if (progress < 0.90)
+        return "[WEB]   Spider's web deployed";
+    return "[SYS]   ACCESS GRANTED";
 }
 
-// ── PROGRESS CALLBACK ────────────────────────────────────────────────
-fun progress_callback(duration, progress) {
-    if (progress >= 0) {
-        global.progress = progress;
 
-        // Scale the fill image to represent progress
-        fill_width = Math.Int(bar_width * progress);
-        if (fill_width > 0) {
-            progress_fill.sprite.SetImage(
-                progress_fill.image.Scale(fill_width, bar_height)
-            );
-        }
+// ── REFRESH — called every frame ───────────────────────────────────
+fun refresh_callback() {
+    global.frame++;
+
+    // ── Fade in (first 30 frames) ──
+    if (global.fade_in < 1.0) {
+        global.fade_in += 0.033;
+        if (global.fade_in > 1.0)
+            global.fade_in = 1.0;
     }
+
+    fade = global.fade_in;
+
+    // ── Hex grid — low opacity, constant ──
+    hex_grid.sprite.SetOpacity(0.4 * fade);
+
+    // ── Corners — fade in ──
+    corner_tl.sprite.SetOpacity(0.8 * fade);
+    corner_tr.sprite.SetOpacity(0.8 * fade);
+    corner_bl.sprite.SetOpacity(0.8 * fade);
+    corner_br.sprite.SetOpacity(0.8 * fade);
+
+    // ── HUD Rings — rotate by recreating positioned sprites ──
+    global.ring_angle += 1.2;
+    ring1_rot = ring1.image.Rotate(global.ring_angle * 3.14159 / 180);
+    ring1.sprite.SetImage(ring1_rot);
+    ring1.sprite.SetPosition(
+        cx - ring1_rot.GetWidth() / 2,
+        cy - ring1_rot.GetHeight() / 2 - 30,
+        8
+    );
+    ring1.sprite.SetOpacity(0.7 * fade);
+
+    // Ring 2 — counter-rotate
+    ring2_rot = ring2.image.Rotate(-global.ring_angle * 0.7 * 3.14159 / 180);
+    ring2.sprite.SetImage(ring2_rot);
+    ring2.sprite.SetPosition(
+        cx - ring2_rot.GetWidth() / 2,
+        cy - ring2_rot.GetHeight() / 2 - 30,
+        7
+    );
+    ring2.sprite.SetOpacity(0.5 * fade);
+
+    // ── Logo — subtle breathing ──
+    breath = 0.8 + 0.2 * Math.Sin(global.frame * 0.04);
+    logo.sprite.SetOpacity(breath * fade);
+
+    // ── Progress bar ──
+    hud_bar.sprite.SetOpacity(0.9 * fade);
+
+    if (global.progress > 0) {
+        fill_w = Math.Int((bar_w - 4) * global.progress);
+        if (fill_w > 0) {
+            hud_fill.sprite.SetImage(
+                hud_fill.image.Scale(fill_w, 16)
+            );
+            hud_fill.sprite.SetOpacity(0.9 * fade);
+        }
+
+        // Percentage text
+        pct_val = Math.Int(global.progress * 100);
+        pct_img = Image.Text(pct_val + "%", 0.380, 0.886, 1.0, 1, "JetBrainsMono Nerd Font 10");
+        pct_text.sprite.SetImage(pct_img);
+        pct_text.sprite.SetPosition(
+            cx - pct_img.GetWidth() / 2,
+            bar_y + 3,
+            17
+        );
+        pct_text.sprite.SetOpacity(0.7 * fade);
+    }
+
+    // ── Scanline — sweep down ──
+    global.scanline_y += 2;
+    if (global.scanline_y > screen_h)
+        global.scanline_y = -10;
+    scanline.sprite.SetPosition(0, global.scanline_y, 20);
+    scanline.sprite.SetOpacity(0.6 * fade);
+
+    // ── Boot message based on progress ──
+    msg = get_boot_message(global.progress);
+    msg_img = Image.Text(msg, 0.380, 0.886, 1.0, 1, "JetBrainsMono Nerd Font 10");
+    status_line.sprite.SetImage(msg_img);
+    status_line.sprite.SetPosition(
+        cx - msg_img.GetWidth() / 2,
+        bar_y + 30,
+        12
+    );
+    status_line.sprite.SetOpacity(0.8 * fade);
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+
+
+// ── PROGRESS CALLBACK ──────────────────────────────────────────────
+fun progress_callback(duration, progress) {
+    if (progress >= 0)
+        global.progress = progress;
 }
 
 Plymouth.SetBootProgressFunction(progress_callback);
 
-// ── MESSAGE/STATUS CALLBACK ──────────────────────────────────────────
+
+// ── MESSAGE CALLBACK ───────────────────────────────────────────────
 fun message_callback(text) {
+    // External messages override boot messages
     if (text == "")
         return;
-
-    msg_image = Image.Text(text, 0.380, 0.886, 1.0);  // Electric Cyan #61E2FF
-    status_text.sprite.SetImage(msg_image);
-    status_text.sprite.SetPosition(
-        center_x - msg_image.GetWidth() / 2,
-        bar_y + 25,
-        20
+    msg_img = Image.Text(text, 0.380, 0.886, 1.0, 1, "JetBrainsMono Nerd Font 10");
+    status_line.sprite.SetImage(msg_img);
+    status_line.sprite.SetPosition(
+        cx - msg_img.GetWidth() / 2,
+        bar_y + 30,
+        12
     );
 }
 
 Plymouth.SetMessageFunction(message_callback);
 
-// ── UPDATE/STATUS CALLBACK ───────────────────────────────────────────
+
+// ── STATUS CALLBACK ────────────────────────────────────────────────
 fun status_callback(status) {
-    // Plymouth passes status strings during boot
 }
 
 Plymouth.SetUpdateStatusFunction(status_callback);
 
-// ── REFRESH — called every frame ─────────────────────────────────────
-fun refresh_callback() {
-    breathe();
-}
 
-Plymouth.SetRefreshFunction(refresh_callback);
-
-// ── QUIT — seamless fade out ─────────────────────────────────────────
+// ── QUIT — fade out ────────────────────────────────────────────────
 fun quit_callback() {
-    // Fade everything to black for seamless transition
+    hex_grid.sprite.SetOpacity(0);
+    corner_tl.sprite.SetOpacity(0);
+    corner_tr.sprite.SetOpacity(0);
+    corner_bl.sprite.SetOpacity(0);
+    corner_br.sprite.SetOpacity(0);
+    ring1.sprite.SetOpacity(0);
+    ring2.sprite.SetOpacity(0);
     logo.sprite.SetOpacity(0);
-    web.sprite.SetOpacity(0);
-    progress_box.sprite.SetOpacity(0);
-    progress_fill.sprite.SetOpacity(0);
-    status_text.sprite.SetOpacity(0);
+    hud_bar.sprite.SetOpacity(0);
+    hud_fill.sprite.SetOpacity(0);
+    scanline.sprite.SetOpacity(0);
+    status_line.sprite.SetOpacity(0);
+    pct_text.sprite.SetOpacity(0);
 }
 
 Plymouth.SetQuitFunction(quit_callback);

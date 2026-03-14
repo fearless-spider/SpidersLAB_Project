@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 """
 ╔══════════════════════════════════════════════════════════════════════╗
-║  SPIDER'S LAB — Plymouth Asset Generator                           ║
-║  Generates: logo.png, web.png, progress-bar.png, progress-fill.png ║
+║  SPIDER'S LAB — Plymouth Asset Generator v2                        ║
+║  System Initialization HUD — Sci-Fi boot sequence                  ║
+║                                                                    ║
+║  Generates: logo.png, hex-grid.png, scanline.png,                  ║
+║             hud-bar.png, hud-fill.png,                             ║
+║             corner-tl.png, corner-tr.png,                          ║
+║             corner-bl.png, corner-br.png,                          ║
+║             hud-ring.png                                           ║
 ║                                                                    ║
 ║  Run: python3 generate-assets.py                                   ║
 ║  Requires: pip install Pillow                                      ║
@@ -13,167 +19,324 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import math
 import os
 
-# ── Config ────────────────────────────────────────────────────────────
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
-HOT_PINK = (252, 25, 154)
-ELECTRIC_CYAN = (97, 226, 255)
-NEON_PURPLE = (175, 109, 249)
-DEEP_PURPLE = (25, 23, 36)
-WHITE = (232, 227, 227)
 
-CANVAS_W = 800
-CANVAS_H = 600
-CENTER = (CANVAS_W // 2, CANVAS_H // 2)
-
-# ── 1. SPIDER WEB — radial web with concentric rings ─────────────────
-def generate_web():
-    img = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-
-    cx, cy = CENTER
-    num_radials = 16
-    num_rings = 8
-    max_radius = 220
-
-    # Draw radial lines from center
-    for i in range(num_radials):
-        angle = (2 * math.pi * i) / num_radials
-        end_x = cx + int(max_radius * math.cos(angle))
-        end_y = cy + int(max_radius * math.sin(angle))
-
-        # Gradient opacity along the line — brighter near center
-        for seg in range(20):
-            t0 = seg / 20
-            t1 = (seg + 1) / 20
-            x0 = cx + int(max_radius * t0 * math.cos(angle))
-            y0 = cy + int(max_radius * t0 * math.sin(angle))
-            x1 = cx + int(max_radius * t1 * math.cos(angle))
-            y1 = cy + int(max_radius * t1 * math.sin(angle))
-            alpha = int(200 * (1 - t0 * 0.6))
-            draw.line([(x0, y0), (x1, y1)], fill=(*HOT_PINK, alpha), width=1)
-
-    # Draw concentric rings (the web strands)
-    for ring in range(1, num_rings + 1):
-        radius = int(max_radius * ring / num_rings)
-        alpha = int(180 * (1 - (ring - 1) / num_rings * 0.5))
-
-        # Draw ring as connected polygon between radial points
-        points = []
-        for i in range(num_radials):
-            angle = (2 * math.pi * i) / num_radials
-            px = cx + int(radius * math.cos(angle))
-            py = cy + int(radius * math.sin(angle))
-            points.append((px, py))
-        points.append(points[0])  # Close the ring
-
-        for j in range(len(points) - 1):
-            # Slight sag in the web strand (organic feel)
-            mid_x = (points[j][0] + points[j + 1][0]) // 2
-            mid_y = (points[j][1] + points[j + 1][1]) // 2
-            # Pull midpoint slightly toward center for sag
-            sag = 0.03
-            mid_x = int(mid_x + (cx - mid_x) * sag)
-            mid_y = int(mid_y + (cy - mid_y) * sag)
-            draw.line([points[j], (mid_x, mid_y), points[j + 1]],
-                      fill=(*HOT_PINK, alpha), width=1)
-
-    # Center dot — the spider's core
-    draw.ellipse([cx - 3, cy - 3, cx + 3, cy + 3],
-                 fill=(*HOT_PINK, 255))
-
-    # Subtle glow via blur
-    glow = img.filter(ImageFilter.GaussianBlur(radius=4))
-    result = Image.alpha_composite(glow, img)
-
-    result.save(os.path.join(OUTPUT_DIR, "web.png"))
-    print("[+] web.png generated")
+# ── Fluoromachine Palette ──────────────────────────────────────────
+HOT_PINK    = (252, 25, 154)
+CYAN        = (97, 226, 255)
+PURPLE      = (175, 109, 249)
+DEEP_BG     = (10, 8, 16)
+DIM_PURPLE  = (40, 30, 60)
+WHITE       = (205, 214, 244)
+DIM_CYAN    = (97, 226, 255, 40)
 
 
-# ── 2. LOGO — "SPIDER'S LAB" text ────────────────────────────────────
-def generate_logo():
-    img = Image.new("RGBA", (600, 120), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-
-    # Try to use a good font, fall back to default
-    font_size = 48
-    small_size = 20
-    try:
-        font = ImageFont.truetype("/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Bold.ttf", font_size)
-        font_small = ImageFont.truetype("/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf", small_size)
-    except (OSError, IOError):
+def get_font(size, bold=False):
+    """Try to load JetBrains Mono, fall back gracefully."""
+    names = [
+        f"/usr/share/fonts/TTF/JetBrainsMonoNerdFont-{'Bold' if bold else 'Regular'}.ttf",
+        f"/usr/share/fonts/truetype/dejavu/DejaVuSansMono{'-Bold' if bold else ''}.ttf",
+    ]
+    for name in names:
         try:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf", font_size)
-            font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", small_size)
+            return ImageFont.truetype(name, size)
         except (OSError, IOError):
-            font = ImageFont.load_default()
-            font_small = font
+            continue
+    return ImageFont.load_default()
 
-    # Main title — SPIDER'S LAB
+
+# ── 1. HEX GRID — subtle background overlay ───────────────────────
+def generate_hex_grid():
+    """Generates a subtle hexagonal grid pattern."""
+    w, h = 1920, 1080
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    hex_size = 30
+    row_h = int(hex_size * math.sqrt(3))
+    col_w = int(hex_size * 1.5)
+
+    for row in range(-1, h // row_h + 2):
+        for col in range(-1, w // col_w + 2):
+            cx = col * col_w
+            cy = row * row_h + (col % 2) * (row_h // 2)
+
+            # Distance from screen center for vignette
+            dx = (cx - w / 2) / (w / 2)
+            dy = (cy - h / 2) / (h / 2)
+            dist = math.sqrt(dx * dx + dy * dy)
+            alpha = max(0, int(18 * (1.0 - dist * 0.7)))
+
+            if alpha < 2:
+                continue
+
+            points = []
+            for i in range(6):
+                angle = math.radians(60 * i + 30)
+                px = cx + hex_size * math.cos(angle)
+                py = cy + hex_size * math.sin(angle)
+                points.append((px, py))
+
+            draw.polygon(points, outline=(*CYAN[:3], alpha))
+
+    img.save(os.path.join(OUTPUT_DIR, "hex-grid.png"))
+    print("[+] hex-grid.png generated")
+
+
+# ── 2. LOGO — Spider's LAB with neon glow ─────────────────────────
+def generate_logo():
+    """Spider's LAB title with hot pink glow."""
+    w, h = 700, 140
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    font_big = get_font(52, bold=True)
+    font_small = get_font(16)
+
     title = "SPIDER'S LAB"
-    bbox = draw.textbbox((0, 0), title, font=font)
+    bbox = draw.textbbox((0, 0), title, font=font_big)
     tw = bbox[2] - bbox[0]
-    tx = (600 - tw) // 2
-    ty = 15
+    tx = (w - tw) // 2
+    ty = 10
 
-    # Red glow layer (drawn slightly larger, blurred)
-    glow_img = Image.new("RGBA", (600, 120), (0, 0, 0, 0))
-    glow_draw = ImageDraw.Draw(glow_img)
-    glow_draw.text((tx, ty), title, fill=(*HOT_PINK, 120), font=font)
-    glow_img = glow_img.filter(ImageFilter.GaussianBlur(radius=6))
+    # Glow layer
+    glow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    glow_draw = ImageDraw.Draw(glow)
+    glow_draw.text((tx, ty), title, fill=(*HOT_PINK, 100), font=font_big)
+    glow = glow.filter(ImageFilter.GaussianBlur(radius=8))
 
-    # Sharp text on top
-    draw.text((tx, ty), title, fill=(*HOT_PINK, 255), font=font)
+    # Second glow pass — wider
+    glow2 = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    glow2_draw = ImageDraw.Draw(glow2)
+    glow2_draw.text((tx, ty), title, fill=(*HOT_PINK, 40), font=font_big)
+    glow2 = glow2.filter(ImageFilter.GaussianBlur(radius=16))
+
+    # Sharp text
+    draw.text((tx, ty), title, fill=(*HOT_PINK, 255), font=font_big)
 
     # Subtitle
-    subtitle = "[ CYBERPUNK HACKER WORKSTATION ]"
-    bbox2 = draw.textbbox((0, 0), subtitle, font=font_small)
+    sub = "SYSTEM INITIALIZATION"
+    bbox2 = draw.textbbox((0, 0), sub, font=font_small)
     sw = bbox2[2] - bbox2[0]
-    sx = (600 - sw) // 2
-    draw.text((sx, 75), subtitle, fill=(*WHITE, 160), font=font_small)
+    sx = (w - sw) // 2
+    draw.text((sx, 80), sub, fill=(*CYAN, 180), font=font_small)
 
-    # Composite glow + sharp
-    result = Image.alpha_composite(glow_img, img)
+    # Thin line under subtitle
+    line_w = 200
+    lx = (w - line_w) // 2
+    draw.line([(lx, 105), (lx + line_w, 105)], fill=(*CYAN, 60), width=1)
+
+    result = Image.alpha_composite(glow2, glow)
+    result = Image.alpha_composite(result, img)
     result.save(os.path.join(OUTPUT_DIR, "logo.png"))
     print("[+] logo.png generated")
 
 
-# ── 3. PROGRESS BAR — container and fill ──────────────────────────────
-def generate_progress_bar():
-    bar_w = 280
-    bar_h = 2
+# ── 3. SCANLINE — horizontal sweep ────────────────────────────────
+def generate_scanline():
+    """Horizontal scan line with fade edges."""
+    w, h = 1920, 6
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
 
-    # Container — dim pink outline
-    container = Image.new("RGBA", (bar_w, bar_h + 2), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(container)
-    draw.rectangle([0, 0, bar_w - 1, bar_h + 1],
-                   outline=(*HOT_PINK, 60), width=1)
-    container.save(os.path.join(OUTPUT_DIR, "progress-bar.png"))
-    print("[+] progress-bar.png generated")
+    for x in range(w):
+        # Fade at edges
+        edge_dist = min(x, w - x) / (w * 0.3)
+        alpha = min(1.0, edge_dist)
 
-    # Fill — cyan to purple gradient
-    fill = Image.new("RGBA", (bar_w, bar_h), (0, 0, 0, 0))
-    for x in range(bar_w):
-        ratio = x / bar_w
-        r = int(97 + (175 - 97) * ratio)
-        g = int(226 + (109 - 226) * ratio)
-        b = int(255 + (249 - 255) * ratio)
-        alpha = int(180 + 75 * ratio)
-        for y in range(bar_h):
-            fill.putpixel((x, y), (r, g, b, alpha))
+        for y in range(h):
+            # Brightest at center of line height
+            y_fade = 1.0 - abs(y - h / 2) / (h / 2)
+            a = int(60 * alpha * y_fade)
+            img.putpixel((x, y), (*CYAN[:3], a))
 
-    # Add glow
-    glow = fill.filter(ImageFilter.GaussianBlur(radius=2))
-    result = Image.alpha_composite(glow, fill)
-    result.save(os.path.join(OUTPUT_DIR, "progress-fill.png"))
-    print("[+] progress-fill.png generated")
+    img.save(os.path.join(OUTPUT_DIR, "scanline.png"))
+    print("[+] scanline.png generated")
 
 
-# ── MAIN ──────────────────────────────────────────────────────────────
+# ── 4. HUD PROGRESS BAR — chamfered corners ───────────────────────
+def generate_hud_bar():
+    """Progress bar container with chamfered (cut) corners like HUD frame."""
+    bar_w, bar_h = 400, 20
+    notch = 6  # chamfer size
+    img = Image.new("RGBA", (bar_w, bar_h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    # Chamfered rectangle outline
+    color = (*CYAN[:3], 80)
+    points = [
+        (notch, 0),
+        (bar_w - 1, 0),
+        (bar_w - 1, bar_h - 1 - notch),
+        (bar_w - 1 - notch, bar_h - 1),
+        (0, bar_h - 1),
+        (0, notch),
+    ]
+    draw.polygon(points, outline=color)
+
+    # Dark fill inside
+    fill_color = (*DEEP_BG, 180)
+    inner = [
+        (notch + 1, 1),
+        (bar_w - 2, 1),
+        (bar_w - 2, bar_h - 2 - notch),
+        (bar_w - 2 - notch, bar_h - 2),
+        (1, bar_h - 2),
+        (1, notch + 1),
+    ]
+    draw.polygon(inner, fill=fill_color)
+
+    img.save(os.path.join(OUTPUT_DIR, "hud-bar.png"))
+    print("[+] hud-bar.png generated")
+
+    # Fill — gradient cyan → purple
+    fill_img = Image.new("RGBA", (bar_w - 4, bar_h - 4), (0, 0, 0, 0))
+    for x in range(bar_w - 4):
+        ratio = x / (bar_w - 4)
+        r = int(CYAN[0] + (PURPLE[0] - CYAN[0]) * ratio)
+        g = int(CYAN[1] + (PURPLE[1] - CYAN[1]) * ratio)
+        b = int(CYAN[2] + (PURPLE[2] - CYAN[2]) * ratio)
+        for y in range(bar_h - 4):
+            fill_img.putpixel((x, y), (r, g, b, 200))
+
+    # Glow on top
+    glow = fill_img.filter(ImageFilter.GaussianBlur(radius=2))
+    result = Image.alpha_composite(glow, fill_img)
+    result.save(os.path.join(OUTPUT_DIR, "hud-fill.png"))
+    print("[+] hud-fill.png generated")
+
+
+# ── 5. HUD CORNERS — bracket decorations ──────────────────────────
+def generate_corners():
+    """HUD corner brackets for the boot screen frame."""
+    size = 60
+    thickness = 2
+    notch = 12
+    color = (*CYAN[:3], 100)
+
+    for name, flip_h, flip_v in [
+        ("corner-tl", False, False),
+        ("corner-tr", True, False),
+        ("corner-bl", False, True),
+        ("corner-br", True, True),
+    ]:
+        img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(img)
+
+        # Top-left corner shape (others are flipped)
+        # Vertical line
+        draw.line([(0, notch), (0, size - 1)], fill=color, width=thickness)
+        # Horizontal line
+        draw.line([(notch, 0), (size - 1, 0)], fill=color, width=thickness)
+        # Chamfer diagonal
+        draw.line([(0, notch), (notch, 0)], fill=color, width=thickness)
+
+        if flip_h:
+            img = img.transpose(Image.FLIP_LEFT_RIGHT)
+        if flip_v:
+            img = img.transpose(Image.FLIP_TOP_BOTTOM)
+
+        img.save(os.path.join(OUTPUT_DIR, f"{name}.png"))
+        print(f"[+] {name}.png generated")
+
+
+# ── 6. HUD RING — spinning element ────────────────────────────────
+def generate_hud_ring():
+    """Partial circle ring for spinning HUD element."""
+    size = 160
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    cx, cy = size // 2, size // 2
+    radius = 65
+
+    # Draw arc segments with gaps
+    segments = [
+        (0, 80),
+        (100, 170),
+        (190, 260),
+        (280, 350),
+    ]
+
+    for start, end in segments:
+        for angle in range(start, end):
+            rad = math.radians(angle)
+            x = cx + radius * math.cos(rad)
+            y = cy + radius * math.sin(rad)
+
+            # Fade at segment edges
+            seg_len = end - start
+            pos_in_seg = angle - start
+            edge_fade = min(pos_in_seg, seg_len - pos_in_seg) / 15.0
+            alpha = int(min(1.0, edge_fade) * 120)
+
+            draw.ellipse([x - 1, y - 1, x + 1, y + 1], fill=(*CYAN[:3], alpha))
+
+    # Inner ring — thinner, dimmer
+    inner_r = 55
+    for angle in range(0, 360, 2):
+        rad = math.radians(angle)
+        x = cx + inner_r * math.cos(rad)
+        y = cy + inner_r * math.sin(rad)
+        draw.ellipse([x, y, x + 1, y + 1], fill=(*PURPLE[:3], 40))
+
+    # Tick marks
+    for angle in range(0, 360, 15):
+        rad = math.radians(angle)
+        x1 = cx + (radius + 3) * math.cos(rad)
+        y1 = cy + (radius + 3) * math.sin(rad)
+        x2 = cx + (radius + 8) * math.cos(rad)
+        y2 = cy + (radius + 8) * math.sin(rad)
+
+        tick_alpha = 60 if angle % 45 != 0 else 120
+        draw.line([(x1, y1), (x2, y2)], fill=(*CYAN[:3], tick_alpha), width=1)
+
+    img.save(os.path.join(OUTPUT_DIR, "hud-ring.png"))
+    print("[+] hud-ring.png generated")
+
+
+# ── 7. HUD RING FRAME 2 — second ring for counter-rotation ────────
+def generate_hud_ring2():
+    """Second ring that rotates opposite direction."""
+    size = 160
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    cx, cy = size // 2, size // 2
+    radius = 75
+
+    segments = [
+        (20, 60),
+        (120, 160),
+        (200, 240),
+        (300, 340),
+    ]
+
+    for start, end in segments:
+        for angle in range(start, end):
+            rad = math.radians(angle)
+            x = cx + radius * math.cos(rad)
+            y = cy + radius * math.sin(rad)
+
+            seg_len = end - start
+            pos_in_seg = angle - start
+            edge_fade = min(pos_in_seg, seg_len - pos_in_seg) / 10.0
+            alpha = int(min(1.0, edge_fade) * 70)
+
+            draw.ellipse([x - 0.5, y - 0.5, x + 0.5, y + 0.5],
+                         fill=(*HOT_PINK[:3], alpha))
+
+    img.save(os.path.join(OUTPUT_DIR, "hud-ring2.png"))
+    print("[+] hud-ring2.png generated")
+
+
+# ── MAIN ───────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    print("╔═══════════════════════════════════════════╗")
-    print("║  SPIDER'S LAB — Generating Plymouth PNGs  ║")
-    print("╚═══════════════════════════════════════════╝")
-    generate_web()
+    print("╔═══════════════════════════════════════════════════╗")
+    print("║  SPIDER'S LAB — Plymouth HUD Assets Generator v2  ║")
+    print("╚═══════════════════════════════════════════════════╝")
+    generate_hex_grid()
     generate_logo()
-    generate_progress_bar()
-    print("\n[✓] All assets written to:", OUTPUT_DIR)
+    generate_scanline()
+    generate_hud_bar()
+    generate_corners()
+    generate_hud_ring()
+    generate_hud_ring2()
+    print(f"\n[✓] All assets written to: {OUTPUT_DIR}")
